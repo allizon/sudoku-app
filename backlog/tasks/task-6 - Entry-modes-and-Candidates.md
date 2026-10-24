@@ -3,15 +3,18 @@ id: TASK-6
 title: Entry modes and Candidates
 status: To Do
 assignee: []
-created_date: '2026-10-24 19:22'
+created_date: 2026-10-24 19:22
+updated_date: '2026-10-24T20:21:00Z'
 labels:
   - afk
 milestone: m-0
 dependencies:
   - TASK-5
+  - TASK-10
 documentation:
   - docs/spec/keymap.md
   - CONTEXT.md
+  - docs/spec/display.md
 ordinal: 6000
 ---
 
@@ -27,7 +30,7 @@ Spec: keymap §2 (entry modes) and keymap §7 (interaction with Givens and place
 <!-- AC:BEGIN -->
 - [ ] #1 The app starts in fill mode
 - [ ] #2 N cycles the sticky entry mode fill → center → corner → fill
-- [ ] #3 The current entry mode is always visible on screen
+- [ ] #3 The current entry mode is always visible as a small line of text under the grid, gray for fill, blue for center, green for corner, in both color schemes (keymap §2)
 - [ ] #4 In center mode, a digit key toggles that digit as a Center mark in the Selected cell
 - [ ] #5 In corner mode, a digit key toggles that digit as a Corner mark in the Selected cell
 - [ ] #6 A cell can hold Center marks and Corner marks at the same time

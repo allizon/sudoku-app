@@ -10,6 +10,7 @@ The whole stack, end to end: a deployed board that is fully keyboard-driven, wit
 - **Project setup:** TypeScript, React, Vite, Vitest; `src/core/` with the test that keeps UI imports out of it ([`AGENTS.md`](../../AGENTS.md) "Stack and architecture").
 - **Deployed** to Vercel through its GitHub integration: every push to `main` deploys automatically.
 - **Grid rendering:** Givens, placed digits, Center marks, and Corner marks are visibly distinct.
+- **Display:** [`display.md`](./display.md) §1 (grid size) and §2 (light and dark color schemes, with the toggle).
 - **Keymap**, all of [`keymap.md`](./keymap.md) except undo/redo: principles (§1), entry modes (§2), letter chords (§3), movement (§4), clearing (§5), interaction with Givens and placed digits (§7), reserved keys (§8).
 - **Paste import, parsing only:** [`import.md`](./import.md) §2 (paste on the grid) and §3 (formats, including parse errors). Any puzzle that parses is loaded as-is — no validation.
   - Paste imports only onto an empty grid. Once a puzzle is loaded, pasting is refused and the puzzle is left exactly as it was; reloading the page gives an empty grid again. (Replacing a puzzle is M1, [`import.md`](./import.md) §5.)
@@ -43,3 +44,4 @@ Not yet assigned to a milestone:
 - Bordered-grid import
 - Sync across devices
 - Timer, streaks
+- Skins: player-selectable visual themes beyond light and dark ([`display.md`](./display.md) §3)

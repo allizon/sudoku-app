@@ -20,7 +20,7 @@ There are three **entry modes**: _fill_, _center_, and _corner_.
 | corner | toggles that digit as a Corner mark            |
 
 - `N` cycles the sticky mode: fill → center → corner → fill.
-- The current mode is always visible on screen.
+- The current mode is always visible on screen, as a small line of text under the grid naming the mode. Its color depends on the mode: gray for fill, blue for center, green for corner, with shades suited to each color scheme ([`display.md`](./display.md) §2).
 
 ## 3. Letter chords
 
