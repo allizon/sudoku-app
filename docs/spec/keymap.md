@@ -72,6 +72,7 @@ On a Given, neither Delete/Backspace nor `X` does anything.
 What counts as one undo step:
 
 - Each change to the grid is one step: placing, removing, or replacing a digit; toggling one Candidate; one Delete/Backspace; one `X`.
+- Placing a digit and the Elimination it causes are one step together ([`feedback.md`](./feedback.md) §3).
 - Each digit pressed during a chord is its own step. Hold `C`, press 1, 2, 3 → undo removes 3, then 2, then 1.
 - Moving the selection and changing the sticky mode are **not** undo steps.
 
@@ -98,7 +99,7 @@ In **center** or **corner** mode, or with a chord held:
 
 ## 8. Reserved keys
 
-Letters with a meaning: `N`, `C`, `S`, `X`. New features must choose other letters.
+Letters with a meaning: `N`, `C`, `S`, `X`, `I` (opens import — see [`import.md`](./import.md) §2). New features must choose other letters.
 
 ## 9. Not in this version
 

@@ -14,6 +14,10 @@ _Avoid_: Clue, starting number, fixed cell
 The single completed grid that satisfies the rules and agrees with every Given.
 _Avoid_: Answer, answer key
 
+**Peer**:
+A cell that shares a row, column, or box with a given cell. Every cell has 20 Peers.
+_Avoid_: Neighbor, buddy, related cell
+
 ### Candidates
 
 **Candidate**:
@@ -27,6 +31,10 @@ _Avoid_: Cell notation
 **Corner mark**:
 A Candidate claiming "this digit must go in one of the cells marked with it, within this box" (Snyder notation). Drawn in the corner of the cell.
 _Avoid_: Box notation, Snyder mark
+
+**Elimination**:
+The automatic removal of a digit's Candidates from a cell's Peers when that digit is placed in the cell without a Conflict.
+_Avoid_: Auto-clean, auto-remove, candidate cleanup
 
 ### Feedback
 
