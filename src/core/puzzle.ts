@@ -3,6 +3,9 @@
 /** Rows and columns in a Puzzle. */
 export const GRID_SIZE = 9;
 
+/** Rows and columns in each of the nine boxes. */
+export const BOX_SIZE = 3;
+
 /**
  * One cell of the Puzzle. For now a cell can only be empty; Givens, placed
  * digits, and Candidates will be added as further shapes of this type.
@@ -24,4 +27,12 @@ export function createEmptyPuzzle(): Puzzle {
 /** Whether the cell holds nothing at all. */
 export function isEmptyCell(cell: Cell): boolean {
   return cell.kind === 'empty';
+}
+
+/**
+ * The box (0–8) holding the cell at a 0-based row and column. Boxes are
+ * numbered left to right, top to bottom.
+ */
+export function boxOf(row: number, column: number): number {
+  return Math.floor(row / BOX_SIZE) * BOX_SIZE + Math.floor(column / BOX_SIZE);
 }
