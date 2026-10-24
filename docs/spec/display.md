@@ -1,6 +1,6 @@
 # Display
 
-Status: **draft** — grid size and color scheme decided; the toggle key and whether the scheme is remembered are open.
+Status: **draft, all sections decided** — awaiting Alix's review.
 Terms (Given, Candidate, Center mark, Corner mark, …) are defined in [`CONTEXT.md`](../../CONTEXT.md).
 
 ## 1. Grid size
@@ -13,8 +13,8 @@ Terms (Given, Candidate, Center mark, Corner mark, …) are defined in [`CONTEXT
 - The app has a light and a dark color scheme.
 - Every color the app uses (grid lines, digits, Candidates, the entry mode line, and the feedback colors in [`feedback.md`](./feedback.md)) is chosen for both schemes.
 - The app starts in the light scheme. The player switches schemes with a toggle in the app; the system's light/dark setting is not used.
-- The toggle is reachable from the keyboard and with the mouse ([`keymap.md`](./keymap.md) §1).
-- _Open:_ which key toggles the scheme (not one of the reserved letters in [`keymap.md`](./keymap.md) §8), and whether the choice is remembered across reloads.
+- The toggle is mouse-only, with no key. This is a setting, not part of solving, so it is an exception to "fully playable from the keyboard" ([`keymap.md`](./keymap.md) §1).
+- The chosen scheme is remembered across reloads, saved through the storage interface ([`AGENTS.md`](../../AGENTS.md) "Stack and architecture").
 
 ## 3. Not in this version
 
