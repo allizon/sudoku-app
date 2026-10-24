@@ -1,11 +1,11 @@
 ---
 id: TASK-2
 title: Deploy to Vercel on every push to main
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: 2026-10-24 19:21
-updated_date: '2026-10-24T21:18:00Z'
+updated_date: '2026-10-24T21:19:00Z'
 labels:
   - hitl
 milestone: m-0
@@ -30,11 +30,20 @@ Pushing main deploys to production, so push main only with Alix's approval (AGEN
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The GitHub repository is connected to a Vercel project (done by Alix)
-- [ ] #2 A push to main triggers a production deploy without any manual step
-- [ ] #3 The deployed URL shows the same empty grid as the local build
-- [ ] #4 README.md records the production URL and states that every push to main deploys
+- [x] #1 The GitHub repository is connected to a Vercel project (done by Alix)
+- [x] #2 A push to main triggers a production deploy without any manual step
+- [x] #3 The deployed URL shows the same empty grid as the local build
+- [x] #4 README.md records the production URL and states that every push to main deploys
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Verify the existing Vercel deploy (commit status on main, live assets vs local build)
+2. Add a Deployment section to README.md
+3. Pin the build command in vercel.json after review
+4. Merge, push, confirm the push deploys
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
@@ -46,3 +55,9 @@ Verified before merge: GitHub commit status 'Vercel: success, Deployment has com
 - minor preview deploys for branches not mentioned — Declined: unverified for this project; not in the acceptance criteria.
 - minor (§M0) commit suffix isn't a spec section — Declined: Alix approved (setup)/(§M0) for milestone work.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Vercel's GitHub integration (set up by Alix in task-9) deploys every push to main to https://sudoku-app-navy.vercel.app/. Verified: GitHub commit status 'Vercel: success' on c6a5031, pushed with no manual step; the live site serves the same content-hashed assets as a local build. README.md now records the URL, that every push to main deploys, that tests don't run on Vercel, and the approval rule for pushing main. vercel.json pins the build command to npm run build so the type-check runs on every deploy.
+<!-- SECTION:FINAL_SUMMARY:END -->
