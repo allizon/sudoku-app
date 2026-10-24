@@ -102,3 +102,47 @@ describe('core boundary on the real src/core/ files: JavaScript and other module
     expect(findCoreBoundaryViolations(files)).toEqual([]);
   });
 });
+
+describe('core boundary checker: triple-slash references with other attributes (review round 2)', () => {
+  it.each([
+    [
+      'a types reference after resolution-mode',
+      '/// <reference resolution-mode="import" types="node" />\nexport const env = 1;',
+      'node',
+    ],
+    ['a lib reference after another attribute', `/// <reference preserve="true" lib='dom' />`, 'dom'],
+    ['an absolute path reference', '/// <reference path="/src/core/cell.d.ts" />', '/src/core/cell.d.ts'],
+    [
+      'a reference with no attribute the checker knows',
+      '/// <reference no-default-lib="true" />',
+      '<reference no-default-lib="true" />',
+    ],
+  ])('flags %s', (_label, source, found) => {
+    expect(violationsIn('src/core/puzzle.ts', source)).toEqual([{ file: 'src/core/puzzle.ts', found }]);
+  });
+
+  it('allows an ES lib reference after another attribute', () => {
+    expect(violationsIn('src/core/puzzle.ts', '/// <reference preserve="true" lib="es2023" />')).toEqual([]);
+  });
+});
+
+describe('core boundary checker: any use of globalThis or self (review round 2)', () => {
+  it.each([
+    ['a cast of globalThis', `export const s = (globalThis as any).localStorage;`, 'globalThis'],
+    ['an alias of globalThis', `const g: any = globalThis;\nexport const s = g.localStorage;`, 'globalThis'],
+    ['bracket access on globalThis', `export const s = globalThis['localStorage'];`, 'globalThis'],
+    ['optional chaining on globalThis', `export const s = globalThis?.localStorage;`, 'globalThis'],
+    ['bare self', `export const g = self;`, 'self'],
+    ['globalThis passed along', `register(globalThis);`, 'globalThis'],
+  ])('flags %s', (_label, source, found) => {
+    expect(violationsIn('src/core/puzzle.ts', source)).toEqual([{ file: 'src/core/puzzle.ts', found }]);
+  });
+
+  it.each([
+    ['a property named self', `export const s = options.self;`],
+    ['an optional property named self', `export const s = options?.self;`],
+    ['a name that contains self', `export const selfCheck = true;\nexport const myGlobalThis = 1;`],
+  ])('allows %s', (_label, source) => {
+    expect(violationsIn('src/core/puzzle.ts', source)).toEqual([]);
+  });
+});

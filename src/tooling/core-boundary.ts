@@ -42,13 +42,18 @@ const COMMENT_OR_STRING =
 const MODULE_SPECIFIER =
   /(?<![\w$.])(?:import|export)\b[^'"`;()]*?\bfrom\s*(['"])([^'"\n]*)\1|(?<![\w$.])import\s*(['"])([^'"\n]*)\3|(?<![\w$.])(?:import|require)\s*\(\s*(['"`])([^'"`\n$]*)\5\s*\)/g;
 
-// `/// <reference types="x" />`, `lib="x"`, or `path="x"`.
-const TRIPLE_SLASH_REFERENCE = /^\/\/\/\s*<reference\s+(types|lib|path)\s*=\s*(['"])([^'"]*)\2/;
+// A `/// <reference … />` tag, and its types/lib/path attribute wherever it
+// appears among the tag's attributes.
+const TRIPLE_SLASH_REFERENCE = /^\/\/\/\s*<reference\b([^>]*)/;
+const REFERENCE_ATTRIBUTE = /(?:^|\s)(types|lib|path)\s*=\s*(['"])([^'"]*)\2/;
 
-// A forbidden global, used bare or through globalThis/self/window. Not a
-// property of something else (`foo.window`) and not part of a longer name.
+// A forbidden global, used bare or through globalThis/self/window; or any
+// other use of globalThis or self, which pure core code has no reason to touch
+// (casts, aliases, bracket access, optional chaining). Not a property of
+// something else (`foo.window`, `options.self`) and not part of a longer name.
 const FORBIDDEN_GLOBAL = new RegExp(
-  `(?<![\\w$.])(?:(?:globalThis|self|window)\\s*\\.\\s*)?(${FORBIDDEN_GLOBALS.join('|')})(?![\\w$])`,
+  `(?<![\\w$.])(?:(?:globalThis|self|window)\\s*\\.\\s*)?(${FORBIDDEN_GLOBALS.join('|')})(?![\\w$])` +
+    `|(?<![\\w$.])(globalThis|self)(?![\\w$])`,
   'g',
 );
 
@@ -75,13 +80,20 @@ function staysInsideCore(filePath: string, specifier: string): boolean {
   return resolved.length >= CORE_ROOT.length && CORE_ROOT.every((segment, i) => resolved[i] === segment);
 }
 
-/** A triple-slash reference that reaches outside src/core/ or the ES standard library, if any. */
+/**
+ * A triple-slash reference that reaches outside src/core/ or the ES standard
+ * library, if any. A reference tag with no types, lib, or path attribute is
+ * reported whole, since it is not one the checker knows to be safe.
+ */
 function forbiddenReference(filePath: string, comment: string): string | undefined {
-  const match = TRIPLE_SLASH_REFERENCE.exec(comment);
-  if (match === null) return undefined;
-  const [, kind, , value = ''] = match;
+  const tag = TRIPLE_SLASH_REFERENCE.exec(comment);
+  if (tag === null) return undefined;
+  const attribute = REFERENCE_ATTRIBUTE.exec(tag[1] ?? '');
+  if (attribute === null) return comment.slice(comment.indexOf('<')).trim();
+  const [, kind, , value = ''] = attribute;
   if (kind === 'lib') return /^es/i.test(value) ? undefined : value;
   if (kind === 'path') {
+    if (value.startsWith('/')) return value;
     const specifier = value.startsWith('.') ? value : `./${value}`;
     return staysInsideCore(filePath, specifier) ? undefined : value;
   }
@@ -113,7 +125,7 @@ function violationsInFile(path: string, source: string): Found[] {
     (match) => match.charAt(0) + blank(match.slice(1, -1)) + match.charAt(match.length - 1),
   );
   for (const match of codeOnly.matchAll(FORBIDDEN_GLOBAL)) {
-    const name = match[1];
+    const name = match[1] ?? match[2];
     if (name !== undefined) found.push({ index: match.index, name });
   }
 

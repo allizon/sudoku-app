@@ -2,13 +2,16 @@
 // tsconfig.core.json type-checks src/core/ with only the ES standard library,
 // so DOM and Node APIs fail to compile there (review round 1 of TASK-1).
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findCoreBoundaryViolations } from './core-boundary';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const tsc = join(repoRoot, 'node_modules', '.bin', 'tsc');
+// Probes live inside the repo (node_modules is gitignored) so type resolution,
+// including node_modules/@types, matches a real file in src/core/.
+const probeRoot = join(repoRoot, 'node_modules', '.cache', 'core-typecheck');
 
 /** Runs tsc on a project file; returns its exit code and output. */
 function typecheck(project: string): { code: number; output: string } {
@@ -26,7 +29,8 @@ function typecheck(project: string): { code: number; output: string } {
 
 /** Type-checks one source file under the src/core/ compiler settings. */
 function typecheckAsCore(source: string) {
-  const dir = mkdtempSync(join(tmpdir(), 'core-typecheck-'));
+  mkdirSync(probeRoot, { recursive: true });
+  const dir = mkdtempSync(join(probeRoot, 'probe-'));
   try {
     writeFileSync(join(dir, 'probe.ts'), source);
     writeFileSync(
@@ -55,5 +59,22 @@ describe('src/core/ type-check without DOM or Node types', () => {
     ['the Node process global', `export const env = process.env;\n`],
   ])('fails on %s', (_label, source) => {
     expect(typecheckAsCore(source).code).not.toBe(0);
+  }, 30_000);
+});
+
+describe('src/core/ type-check and boundary scan together (review round 2)', () => {
+  // A types reference brings Node types in even with "types": [], so the
+  // type-check alone accepts this; the boundary scan is what catches it.
+  const source = '/// <reference resolution-mode="import" types="node" />\nexport const env = process.env;\n';
+
+  it('a reordered types reference to node is flagged by the boundary scan', () => {
+    expect(findCoreBoundaryViolations([{ path: 'src/core/probe.ts', source }])).toEqual([
+      { file: 'src/core/probe.ts', found: 'node' },
+      { file: 'src/core/probe.ts', found: 'process' },
+    ]);
+  });
+
+  it('the type-check alone does not catch it, which is why both checks run', () => {
+    expect(typecheckAsCore(source).code).toBe(0);
   }, 30_000);
 });
