@@ -1,0 +1,53 @@
+:root {
+  --thin-line: 1px solid #b0b0b0;
+  --box-line: 3px solid #222;
+  font-family: system-ui, sans-serif;
+  color: #222;
+  background: #fafafa;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-rows: repeat(9, 1fr);
+  width: min(90vw, 90vh, 540px);
+  aspect-ratio: 1;
+  border: var(--box-line);
+  background: #fff;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+}
+
+.cell {
+  border-right: var(--thin-line);
+  border-bottom: var(--thin-line);
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.row:last-child .cell {
+  border-bottom: none;
+}
+
+/* Thicker lines between the 3×3 boxes. */
+.cell:nth-child(3n):not(:last-child) {
+  border-right: var(--box-line);
+}
+
+.row:nth-child(3n):not(:last-child) .cell {
+  border-bottom: var(--box-line);
+}
