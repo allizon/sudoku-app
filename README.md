@@ -23,3 +23,9 @@ npm install      # install dependencies
 - **Test:** `npm test` (or `npm run test:watch` to rerun on changes).
 - **Type-check:** `npm run typecheck`.
 - **Build:** `npm run build` type-checks, then writes the production build to `dist/`.
+
+## Deployment
+
+The app is live at **https://sudoku-app-navy.vercel.app/**.
+
+Every push to `main` deploys to production automatically, through Vercel's GitHub integration; there is no manual step. With Vercel's default settings for Vite, the build command is `npm run build`, so a push that fails the type-check doesn't deploy. Because pushing `main` deploys, push it only after a task's merge is approved (see [`AGENTS.md`](./AGENTS.md), workflow step 8).
