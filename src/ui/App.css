@@ -1,6 +1,10 @@
 :root {
-  --thin-line: 1px solid #b0b0b0;
+  /* Thin lines at about 3.4:1 against the white cells. */
+  --thin-line: 1px solid #8a8a8a;
   --box-line: 3px solid #222;
+  --page-padding: 1rem;
+  /* 6 thin lines + 2 inner box lines + 2 outer box lines across the grid. */
+  --lines: 18px;
   font-family: system-ui, sans-serif;
   color: #222;
   background: #fafafa;
@@ -10,27 +14,46 @@ body {
   margin: 0;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app {
   display: flex;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: var(--page-padding);
 }
 
 .grid {
-  display: grid;
-  grid-template-rows: repeat(9, 1fr);
-  width: min(90vw, 90vh, 540px);
-  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
   border: var(--box-line);
   background: #fff;
 }
 
 .row {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  display: flex;
 }
 
+/*
+ * Every cell gets the same explicit content size, with borders drawn outside
+ * it, so the cells next to box lines are as large as the rest. The size is the
+ * largest that fits the viewport (both ways) without scrolling, up to 58px.
+ */
 .cell {
+  --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
+  --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines)) / 9);
+  box-sizing: content-box;
+  width: min(58px, var(--fit-width), var(--fit-height));
+  aspect-ratio: 1;
   border-right: var(--thin-line);
   border-bottom: var(--thin-line);
 }
