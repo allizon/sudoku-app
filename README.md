@@ -10,4 +10,16 @@ Built as practice in spec-driven, agent-assisted development: specs and work bre
 - [`docs/spec/`](./docs/spec/) — the spec, one file per feature area
 - [`LEARNING-LOG.md`](./LEARNING-LOG.md) — running log of decisions and what was learned along the way
 
-No code yet.
+## Getting started
+
+The Node version is pinned in [`.nvmrc`](./.nvmrc).
+
+```sh
+nvm use          # switch to the pinned Node version
+npm install      # install dependencies
+```
+
+- **Run:** `npm run dev`, then open the local URL Vite prints.
+- **Test:** `npm test` (or `npm run test:watch` to rerun on changes).
+- **Type-check:** `npm run typecheck`.
+- **Build:** `npm run build` type-checks, then writes the production build to `dist/`.
