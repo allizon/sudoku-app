@@ -172,3 +172,28 @@ Each entry: what we did, what was decided, and what we learned about specs/break
 - Claude's own call, flagged for review: ask about spec gaps that affect tests during the test step; record smaller ones as "spec gaps" in the handoff.
 - Left out on purpose: the single storage interface (still unconfirmed), and commands (no `package.json` yet — the environment should be the source of truth for those).
 - Awaiting Alix's review before committing — the first use of the "approve, then merge" flow, applied to the process doc itself.
+- Alix's review:
+  1. Spec-gap rule (ask if it affects tests; otherwise record in the handoff): approved.
+  2. Branch naming `<area>/<short-slug>`: fine for now. Alix will likely adopt **Backlog.md** (https://github.com/MrLesk/Backlog.md/) for repo-local issue tracking; branch names should then tie to its tickets. Installing it is likely the next task.
+  3. Single storage interface: add it as a rule now, even though its details aren't worked out. Now confirmed (supersedes "proposed" in Q4).
+- Backlog.md install deferred to Alix's computer: the npm registry is blocked from both Claude's workspace and the computer's sandbox.
+
+## 2026-10-23 — Agent personas
+
+- Alix wants different agent personas for different parts of the process, each "really focused in on their jobs." First ideas: a TypeScript pro, a React pro, a code reviewer ("preferably fairly antagonistic"), a UI/UX pro. Unsure what else is needed. Has barely used personas; wants guidance on best practices and setup.
+- Setup: Claude Code subagents, one Markdown file each in `.claude/agents/`; `description` decides when it's used, `tools` limits what it can do, each runs in a fresh context.
+- Guidance discussed: focus comes from a narrow job, a defined output, and restricted tools more than from persona framing; a reviewer's independence (fresh context, sees only spec + diff) matters more than its tone; every agent is a file to maintain, so start small.
+- Decided: organize agents **by workflow step, not by technology**, "especially to start while I'm figuring out what I'm doing with them." Proposed set: test-writer (step 2), implementer (steps 4–5; carries the TypeScript/React expertise), code-reviewer (adversarial, read-only, before step 6), ux-reviewer (UI chunks only, read-only).
+- Why separate test-writer from implementer: one agent writing both tends to write tests that fit the code it already has in mind.
+
+**Who coordinates the agents?**
+- Agreed: a main session coordinates and dispatches each agent; Alix keeps the two checkpoints (approve tests, approve merge).
+- Alix: code-reviewer findings go back to implementer automatically, but the issues found and their resolutions are logged. "I would indeed like to be able to see what the discussion looks like, but don't need to be involved with every bit of it (just like a real manager!)"
+- Open: where that review record lives, and when a back-and-forth escalates to Alix.
+- Decided: the review record lives in the task's Backlog.md ticket (until it's installed, `docs/reviews/<branch>.md`), one short entry per round: each finding, its severity, and fixed/declined with a reason. The checkpoint-2 handoff summarizes it.
+- Decided escalation rules: (1) at most two review rounds, then remaining major findings go to Alix; (2) findings the implementer declines are listed at checkpoint 2; (3) spec contradictions (reviewer says code is wrong per spec, implementer says the spec is wrong) go to Alix immediately — they're spec gaps, not for agents to settle.
+
+**Drafts written (uncommitted, for Alix's review alongside the Backlog.md install)**
+- `.claude/agents/`: `test-writer.md`, `implementer.md`, `code-reviewer.md`, `ux-reviewer.md`. Reviewers have no edit tools. Each ends on a checkpoint; the reviewers' checkpoint requires checking every relevant rule before an empty findings list counts.
+- `AGENTS.md`: new "Agents" section (who does which step); workflow grew from 7 to 8 steps with a **Review** step (5); handoff now includes a review summary with every declined finding; new "Review record" section.
+- Claude's own calls, flagged for review: the implementer may not change approved tests (it stops and reports instead); the ux-reviewer's five review areas (keyboard, visible state, feedback, accessibility, clarity), with WCAG AA as the contrast bar; reviewers flag disagreements with the spec as "spec questions."
