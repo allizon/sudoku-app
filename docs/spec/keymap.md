@@ -21,6 +21,7 @@ There are three **entry modes**: _fill_, _center_, and _corner_.
 
 - `N` cycles the sticky mode: fill → center → corner → fill.
 - The current mode is always visible on screen, as a small line of text under the grid naming the mode. Its color depends on the mode: gray for fill, blue for center, green for corner, with shades suited to each color scheme ([`display.md`](./display.md) §2).
+- This line updates instantly whenever the mode changes. While a chord's letter is held ([§3](#3-letter-chords)), it shows the chord's mode; when the letter is released, it reverts to the sticky mode.
 
 ## 3. Letter chords
 
@@ -37,7 +38,7 @@ Rules:
 2. `C` or `S` pressed and released with no digit does nothing.
 3. Key auto-repeat from a held letter is ignored.
 4. If the window loses focus, any held chord is released.
-5. A chord overrides the sticky mode for that keypress only; the sticky mode is unchanged afterwards.
+5. A chord overrides the sticky mode for that keypress only; the sticky mode is unchanged afterwards. While the letter is held, the mode line shows the chord's mode ([§2](#2-entry-modes)).
 6. If `C` and `S` are both held, no chord applies and digit presses do nothing.
 
 ## 4. Movement

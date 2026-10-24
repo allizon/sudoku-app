@@ -33,8 +33,16 @@ The one cell that key presses act on. Exactly one cell is selected at all times.
 _Avoid_: Cursor, active cell, focused cell
 
 **Entry mode**:
-What a digit key does to the Selected cell: in fill mode it places a digit, in center mode it toggles a Center mark, and in corner mode it toggles a Corner mark. The sticky entry mode is changed with `N`; a letter chord overrides it while held.
+What a digit key does to the Selected cell: in fill mode it places a digit, in center mode it toggles a Center mark, and in corner mode it toggles a Corner mark. The Sticky mode is changed with `N`; a letter chord overrides it while held.
 _Avoid_: Input mode, note mode, pencil mode
+
+**Sticky mode**:
+The Entry mode set with `N`, which stays in effect until `N` changes it again. A letter chord overrides it only while the chord's letter is held; releasing the letter reverts the Entry mode to the Sticky mode.
+_Avoid_: Base mode, default mode, persistent mode
+
+**Entry mode line**:
+The small line of text under the grid that names the current Entry mode, colored by mode. It updates instantly whenever the Entry mode changes, including while a chord's letter is held, and reverts to the Sticky mode when the letter is released.
+_Avoid_: Mode indicator, status bar, mode label
 
 ### Candidates
 
