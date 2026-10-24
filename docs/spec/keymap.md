@@ -1,69 +1,69 @@
 # Keymap
 
 Status: **draft, all sections decided** — awaiting Alix's review.
-Terms (Given, Candidate, Center mark, Corner mark, …) are defined in [`CONTEXT.md`](../../CONTEXT.md).
+Terms (◆GIVEN, ◆CANDIDATE, ◆CENTER MARK, ◆CORNER MARK, …) are defined in [`CONTEXT.md`](../../CONTEXT.md).
 
 ## 1. Principles
 
-- The app is fully playable from the keyboard. The mouse is allowed but never required: clicking a cell makes it the Selected cell.
+- The app is fully playable from the keyboard. The mouse is allowed but never required: clicking a cell makes it the ◆SELECTED CELL.
 - Digit keys are identified by **physical key**, not by the character produced (e.g. a key that types `!` with Shift held is still "1").
 - Cmd + digit is never used (on macOS the browser reserves it for tab switching).
 
 ## 2. Entry modes
 
-There are three **entry modes**: _fill_, _center_, and _corner_.
+There are three **◆ENTRY MODEs**: _fill_, _center_, and _corner_.
 
 | Mode   | A digit key…                                   |
 |--------|------------------------------------------------|
-| fill   | places that digit in the selected cell         |
-| center | toggles that digit as a Center mark            |
-| corner | toggles that digit as a Corner mark            |
+| fill   | places that digit in the ◆SELECTED CELL         |
+| center | toggles that digit as a ◆CENTER MARK            |
+| corner | toggles that digit as a ◆CORNER MARK            |
 
-- `N` cycles the sticky mode: fill → center → corner → fill.
+- `N` cycles the ◆STICKY MODE: fill → center → corner → fill.
 - The current mode is always visible on screen, as a small line of text under the grid naming the mode. Its color depends on the mode: gray for fill, blue for center, green for corner, with shades suited to each color scheme ([`display.md`](./display.md) §2).
-- This line updates instantly whenever the mode changes. While a chord's letter is held ([§3](#3-letter-chords)), it shows the chord's mode; when the letter is released, it reverts to the sticky mode.
+- This line updates instantly whenever the mode changes. While a chord's letter is held ([§3](#3-letter-chords)), it shows the chord's mode; when the letter is released, it reverts to the ◆STICKY MODE.
 
 ## 3. Letter chords
 
-Chords apply a mode to digit presses without changing the sticky mode.
+Chords apply a mode to digit presses without changing the ◆STICKY MODE.
 
 | Chord           | Effect                                    |
 |-----------------|-------------------------------------------|
-| `C` + digit     | toggles that digit as a Center mark       |
-| `S` + digit     | toggles that digit as a Corner mark       |
+| `C` + digit     | toggles that digit as a ◆CENTER MARK       |
+| `S` + digit     | toggles that digit as a ◆CORNER MARK       |
 
 Rules:
 
-1. A chord is active for as long as its letter is held. Several digits can be pressed during one chord (hold `C`, press 1, 4, 7 → three Center marks toggled).
+1. A chord is active for as long as its letter is held. Several digits can be pressed during one chord (hold `C`, press 1, 4, 7 → three ◆CENTER MARKs toggled).
 2. `C` or `S` pressed and released with no digit does nothing.
 3. Key auto-repeat from a held letter is ignored.
 4. If the window loses focus, any held chord is released.
-5. A chord overrides the sticky mode for that keypress only; the sticky mode is unchanged afterwards. While the letter is held, the mode line shows the chord's mode ([§2](#2-entry-modes)).
+5. A chord overrides the ◆STICKY MODE for that keypress only; the ◆STICKY MODE is unchanged afterwards. While the letter is held, the ◆ENTRY MODE LINE shows the chord's mode ([§2](#2-entry-modes)).
 6. If `C` and `S` are both held, no chord applies and digit presses do nothing.
 
 ## 4. Movement
 
-- Exactly one cell is selected at all times. A newly opened puzzle selects row 1, column 1.
+- Exactly one cell is selected at all times. A newly opened ◆PUZZLE selects row 1, column 1.
 - Arrow keys move the selection one cell.
 - Movement wraps within the same row or column: right from column 9 → column 1 of the same row; down from row 9 → row 1 of the same column (and likewise for left and up).
-- Cells holding Givens can be selected.
+- Cells holding ◆GIVENs can be selected.
 - Letter keys do not move the selection.
 
 ## 5. Clearing
 
-Delete and Backspace behave identically and clear one layer of the selected cell, chosen by the active mode (sticky mode, or chord if one is held):
+Delete and Backspace behave identically and clear one layer of the ◆SELECTED CELL, chosen by the active mode (◆STICKY MODE, or chord if one is held):
 
 | Active mode              | Delete / Backspace…                                                                 |
 |--------------------------|-------------------------------------------------------------------------------------|
-| fill                     | removes the placed digit, revealing any hidden Candidates; nothing if no digit      |
-| center (or `C` held)     | removes all Center marks in the cell                                                |
-| corner (or `S` held)     | removes all Corner marks in the cell                                                |
+| fill                     | removes the ◆PLACED DIGIT, revealing any hidden ◆CANDIDATEs; nothing if no digit      |
+| center (or `C` held)     | removes all ◆CENTER MARKs in the cell                                                |
+| corner (or `S` held)     | removes all ◆CORNER MARKs in the cell                                                |
 
-On a cell holding a placed digit, Delete/Backspace in center or corner mode (or with `C` or `S` held) does nothing: the Candidates hidden under the digit are kept. Delete/Backspace never deletes hidden Candidates.
+On a cell holding a ◆PLACED DIGIT, Delete/Backspace in center or corner mode (or with `C` or `S` held) does nothing: the ◆CANDIDATEs hidden under the digit are kept. Delete/Backspace never deletes hidden ◆CANDIDATEs.
 
-`X` clears **everything** from the selected cell — placed digit, Center marks, and Corner marks, including hidden ones — regardless of mode.
+`X` clears **everything** from the ◆SELECTED CELL — ◆PLACED DIGIT, ◆CENTER MARKs, and ◆CORNER MARKs, including hidden ones — regardless of mode.
 
-On a Given, neither Delete/Backspace nor `X` does anything.
+On a ◆GIVEN, neither Delete/Backspace nor `X` does anything.
 
 ## 6. Undo / redo
 
@@ -74,31 +74,31 @@ On a Given, neither Delete/Backspace nor `X` does anything.
 
 What counts as one undo step:
 
-- Each change to the grid is one step: placing, removing, or replacing a digit; toggling one Candidate; one Delete/Backspace; one `X`.
-- Placing a digit and the Elimination it causes are one step together ([`feedback.md`](./feedback.md) §3).
+- Each change to the grid is one step: placing, removing, or replacing a digit; toggling one ◆CANDIDATE; one Delete/Backspace; one `X`.
+- Placing a digit and the ◆ELIMINATION it causes are one step together ([`feedback.md`](./feedback.md) §3).
 - Each digit pressed during a chord is its own step. Hold `C`, press 1, 2, 3 → undo removes 3, then 2, then 1.
-- Moving the selection and changing the sticky mode are **not** undo steps.
+- Moving the selection and changing the ◆STICKY MODE are **not** undo steps.
 
 Rules:
 
-- Undo restores the cell exactly as it was, including hidden Candidates and Corner marks (e.g. undoing `X` brings everything back).
-- Undo/redo history is saved with the puzzle and survives a page refresh.
+- Undo restores the cell exactly as it was, including hidden ◆CANDIDATEs and ◆CORNER MARKs (e.g. undoing `X` brings everything back).
+- Undo/redo history is saved with the ◆PUZZLE and survives a page refresh.
 - Making a new change after undoing discards the redo history.
 
 ## 7. Interaction with Givens and placed digits
 
-Pressing a digit in **fill** mode, by what the selected cell holds:
+Pressing a digit in **fill** mode, by what the ◆SELECTED CELL holds:
 
 | The cell holds…              | Result                                                                                   |
 |------------------------------|------------------------------------------------------------------------------------------|
-| a Given                      | nothing happens                                                                          |
-| the same placed digit        | the digit is removed (toggle)                                                            |
-| a different placed digit     | the new digit replaces it                                                                |
-| only Candidates (or nothing) | the digit is placed; any Candidates are hidden, not deleted, and reappear if the digit is later removed |
+| a ◆GIVEN                      | nothing happens                                                                          |
+| the same ◆PLACED DIGIT        | the digit is removed (toggle)                                                            |
+| a different ◆PLACED DIGIT     | the new digit replaces it                                                                |
+| only ◆CANDIDATEs (or nothing) | the digit is placed; any ◆CANDIDATEs are hidden, not deleted, and reappear if the digit is later removed |
 
 In **center** or **corner** mode, or with a chord held:
 
-- On a cell holding a Given or a placed digit, a digit press does nothing.
+- On a cell holding a ◆GIVEN or a ◆PLACED DIGIT, a digit press does nothing.
 
 ## 8. Reserved keys
 

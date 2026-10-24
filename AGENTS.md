@@ -4,15 +4,15 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 
 ## Sources of truth
 
-- **`CONTEXT.md`** is the glossary. Use its terms exactly in code, tests, and commit messages. When a task uses a word the glossary lacks, or uses a glossary word differently, ask Alix before writing tests.
+- **`CONTEXT.md`** is the glossary. Use its terms exactly in code, tests, and commit messages. In documentation (specs, tickets, this guide, and the bodies of `CONTEXT.md`), write every reference to a glossary term in capitals with a leading ◆, with plurals as a lowercase `s` after the capitals: ◆ENTRY MODE, ◆GIVENs. Leave code, tests, commit messages, quoted on-screen text, headings, and the `CONTEXT.md` term headings and _Avoid_ lines in plain form. When a task uses a word the glossary lacks, or uses a glossary word differently, ask Alix before writing tests.
 - **Backlog.md tickets** (in `backlog/`) hold the tasks and their acceptance criteria.
 - **`docs/spec/`** holds behavior, one file per feature area. Build what the spec states. When the spec is silent or ambiguous on something the tests depend on, ask during step 2; for anything smaller, make a reasonable choice and list it as a **spec gap** in the handoff (step 7).
 
 ## Stack and architecture
 
 - TypeScript, React, Vite, Vitest. Test-driven.
-- Puzzle logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
-- All saved state (the puzzle in progress, its undo history, imported puzzles) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
+- ◆PUZZLE logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
+- All saved state (the ◆PUZZLE in progress, its undo history, imported ◆PUZZLEs) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
 - Every color in the UI comes from a CSS token (custom property), never a color literal where it is used, so a future skin can restyle the app by supplying its own token values (`docs/spec/display.md` §2).
 
 ## Agents
