@@ -5,30 +5,54 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 ## Sources of truth
 
 - **`CONTEXT.md`** is the glossary. Use its terms exactly in code, tests, and commit messages. When a task uses a word the glossary lacks, or uses a glossary word differently, ask Alix before writing tests.
-- **`docs/spec/`** holds behavior, one file per feature area. Build what the spec states. When the spec is silent or ambiguous on something your tests depend on, ask during step 2; for anything smaller, make a reasonable choice and list it as a **spec gap** in the handoff (step 6).
+- **`docs/spec/`** holds behavior, one file per feature area. Build what the spec states. When the spec is silent or ambiguous on something the tests depend on, ask during step 2; for anything smaller, make a reasonable choice and list it as a **spec gap** in the handoff (step 7).
 
 ## Stack and architecture
 
 - TypeScript, React, Vite, Vitest. Test-driven.
 - Game logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
+- All saved state (games in progress, undo history, imported puzzles) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
+
+## Agents
+
+The **main session** runs the workflow below: it does steps 1, 3, 6, 7, and 8 itself, dispatches the other steps to subagents in `.claude/agents/`, and brings Alix the two checkpoints that are theirs (steps 2 and 7).
+
+| Agent           | Step | Job                                                        |
+|-----------------|------|------------------------------------------------------------|
+| `test-writer`   | 2    | Acceptance criteria → failing tests                        |
+| `implementer`   | 4    | Make the approved tests pass                               |
+| `code-reviewer` | 5    | Adversarial, read-only review against spec and this guide  |
+| `ux-reviewer`   | 5    | Read-only review of player-facing behavior; UI tasks only  |
+
+Give each subagent what its job needs: the task's acceptance criteria, the relevant spec sections, and the branch name.
 
 ## Workflow for every task
 
 Each step ends at its **checkpoint**; move to the next step only once it is met.
 
 1. **Branch.** Start a branch or worktree from up-to-date `main`, named `<area>/<short-slug>` (e.g. `keymap/mode-aware-clearing`). Checkpoint: you are on the new branch.
-2. **Tests first.** Turn the task's acceptance criteria into Vitest tests that fail. Show Alix the list (each test's name and a one-line description), plus any questions. Checkpoint: Alix approves the tests.
+2. **Tests first** — `test-writer`. Turn the task's acceptance criteria into Vitest tests that fail. Show Alix the list (each test's name and a one-line description), plus any questions. Checkpoint: Alix approves the tests.
 3. **Commit red.** Commit the approved tests: `test(<area>): <summary> (§n)`. Checkpoint: the new tests fail; everything else passes.
-4. **Make it green.** Implement until the full suite passes. Commit as `feat(<area>): …` or `fix(<area>): …`; add a `refactor(<area>): …` commit if needed. Checkpoint: full suite green.
-5. **Tidy.** Rebase onto `main`. Each commit on the branch is one meaningful TDD step with a clear message. Checkpoint: the branch is a clean red → green sequence on top of current `main`.
-6. **Hand off.** Post a "ready to merge" note to Alix containing:
+4. **Make it green** — `implementer`. Implement until the full suite passes, leaving the approved tests as written. Commit as `feat(<area>): …` or `fix(<area>): …`; add a `refactor(<area>): …` commit if needed. Checkpoint: full suite green.
+5. **Review** — `code-reviewer`, plus `ux-reviewer` when the task changes what the player sees or does. Send each finding to `implementer`, which fixes it or declines it with a reason. Record every round in the review record (below). Repeat for at most two rounds. Escalate to Alix:
+   - immediately, when a finding says the **spec** is wrong or contradicts itself — that is a spec gap for Alix to settle;
+   - after round 2, when major findings remain open.
+
+   Checkpoint: no open major findings, or the open ones are escalated.
+6. **Tidy.** Rebase onto `main`. Each commit on the branch is one meaningful TDD step with a clear message. Checkpoint: the branch is a clean red → green sequence on top of current `main`.
+7. **Hand off.** Post a "ready to merge" note to Alix containing:
    - what changed, in a few lines
    - test results
-   - **spec gaps**: every decision you made that the spec didn't cover
+   - **spec gaps**: every decision made that the spec didn't cover
+   - review summary: rounds, findings fixed, and **every declined finding** with its reason
    - the diff command: `git diff main...<branch>`
 
    Checkpoint: Alix approves the merge.
-7. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Checkpoint: `main` contains the branch's commits and the branch is gone.
+8. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Checkpoint: `main` contains the branch's commits and the branch is gone.
+
+## Review record
+
+One entry per review round, in the task's ticket (until a ticket system is installed: `docs/reviews/<branch>.md`, with `/` in the branch name replaced by `-`). For each finding: severity (major/minor), what and where, and the resolution — **Fixed** (how) or **Declined** (why).
 
 ## Commit messages
 
