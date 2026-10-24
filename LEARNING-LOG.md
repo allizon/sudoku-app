@@ -220,3 +220,71 @@ Each entry: what we did, what was decided, and what we learned about specs/break
 - Branch naming: `task-<n>/<short-slug>`, from Backlog.md's `task` prefix.
 - Backlog tickets added to "Sources of truth" as the home of tasks and acceptance criteria.
 - This change itself went through a branch and the merge checkpoint.
+
+## 2026-10-24 — Branch 3: feedback (`docs/spec/feedback.md`)
+
+**Conflict behavior**
+- Proposed and not objected to: mark every cell involved (placed digits strongly, Givens lightly); Conflicts are live, recalculated after every change; Conflict takes priority over Mistake; candidates are never Conflicts. Written into `feedback.md` §2.
+- Alix: relies on current apps removing candidates after a placement — "mainly for removing tedium (and potential mistakes later in the puzzle)." So candidate elimination is a real M1 need, not an assist to defer.
+- Open: Alix said "after a *successful* placement." Does successful mean conflict-free, or correct per the Solution? (See next question.)
+
+**Which placements trigger Elimination?**
+- Options: (a) any placement, (b) any conflict-free placement, (c) only placements matching the Solution.
+- Decided: **(b)**. (c) would leak Mistakes (no removal = wrong digit) and depend on the solver; (a) would rearrange the grid around a Conflict.
+- Agreed: remove both Center and Corner marks of the digit from the placed cell's Peers; placement + Elimination is one undo step; removing/replacing the digit later (not via undo) doesn't restore Candidates; always on, no setting in M1.
+- Added to glossary: **Peer**, **Elimination**. Written into `feedback.md` §3; `keymap.md` §6 now points to it for the undo rule.
+- **Lesson:** "successful" was a third hidden term. Each adjective in a requirement ("successful," "correct," "wrong") is a candidate for a glossary entry or a decision.
+
+**Mistakes: behavior and milestone**
+- Proposed and not objected to: flagged immediately on placement; visually distinct from Conflicts; live (re-evaluated after every change); blocks nothing; when there's no known Solution, no Mistakes are shown and the app says checking is unavailable.
+- Decided: **Mistakes are in M1.** This brings a solver and import-time handling of puzzles with no or multiple solutions into M1 — to be specified in `import.md`.
+- Written into `feedback.md` §4.
+
+**What happens when Solved?**
+- Agreed: clear on-screen announcement; grid locks; selection and movement still work; undo still works and unlocks; Solved state survives refresh.
+- Alix: "I wouldn't mind a *little* pizzazz to the 'solved' message, but confetti isn't necessary :)" — exact treatment left as a design decision; motion must respect reduced-motion.
+- Dependency recorded: "Solved never contains a Mistake" holds only if every puzzle with a known Solution has exactly one solution; `import.md` must guarantee it.
+- `feedback.md`: all sections decided, awaiting review.
+
+## 2026-10-24 — Branch 4: import (`docs/spec/import.md`)
+
+**Validation at import**
+- Decided: solve every puzzle at import; accept only puzzles with exactly one solution. Alix: "I don't want multi-solution puzzles."
+- Rejection order: unparseable → conflicting Givens → no solution → multiple solutions; each with a specific message.
+- Decided: import can wait for the solve (no background thread).
+- Written into `import.md` §3; Sample A carried over from the sketch as §4.
+- Claude checked Sample A by exhaustive search: exactly one solution; the permalink form is the same puzzle. Both forms and the solution added to §4 as fixtures.
+
+**Paste formats in M1**
+- Conflict found in the sketch: `-` means "empty" in Sample A's notation but is also a border character in grid-style text.
+- Agreed: one rule — strip whitespace and commas, expect 81 characters; `1`–`9` Givens; `.`/`0`/`-` empty; anything else is a parse error with character and position. Covers 81-char strings, row-by-row text, and comma/space variants.
+- Out of M1: bordered grids; `.sdm` bundles. Alix wants `.sdm` in a future milestone.
+- Alix hadn't heard of `.sdm` — though it was in the sketch's format list. Written into `import.md` §2.
+- Observation (Claude): a spec can accumulate requirements nobody actually chose. Possible check for future specs: "who wanted this, and why?"
+
+**Replacing the current game**
+- Agreed: one game at a time in M1 — Alix: "one-game-at-a-time is perfect."
+- Proposed and not objected to: confirm before replacing an unfinished game; no prompt if Solved or empty; fresh game state on import; a rejected import changes nothing. Written into `import.md` §5 (renumbered).
+
+**Starting an import from the keyboard**
+- Gap found between spec files: `keymap.md` promises full keyboard play, but nothing said how an import starts.
+- Agreed: paste (Cmd/Ctrl+V) on the grid imports the clipboard; `I` opens a visible import field; the replace confirmation is keyboard-driven with focus on cancel. Written into `import.md` §2; `I` added to reserved keys in `keymap.md` §8.
+- Alix asked whether there's a service to fetch puzzles automatically, or a good source to link to from the app.
+- Claude's research (2026-10-24): free JSON APIs exist (YouDoSudoku, Dosuku at sudoku-api.vercel.app) and include solution and difficulty, but top out around "hard" and add a network dependency. The Sudoku Exchange puzzle bank (github.com/grantm/sudoku-exchange-puzzle-bank) has several hundred thousand puzzles, stated free of copyright, rated with Sukaku Explainer; "Diabolical" = rating 5.0+. One puzzle per line: hash, 81 digits, rating.
+- Decided: **built-in puzzles from the Sudoku Exchange bank in M2** (Alix: "number three sounds fantastic"). Recorded in `import.md` "Not in this version" with the source details.
+- `import.md`: all sections decided, awaiting review. `feedback.md` cross-references now point at `import.md` §4.
+
+## 2026-10-24 — Milestones (`docs/spec/milestones.md`)
+
+- Observation (Claude): M1 had roughly doubled since the first sketch (Corner marks, Elimination, Mistakes, solver all added). Proposed one milestone with a "first playable" point partway through.
+- Alix's alternative: a **Milestone 0** — a board that's keyboard-traversable, with all keys and input methods *working*, but not solvable: nothing is checked. "Just to make sure everything is working together correctly." M1 then makes it playable/solvable and adds feedback, undo, etc.
+- Observation (Claude): this is a walking skeleton / tracer bullet — it proves the whole stack end to end before any game logic. Exact M0 boundary still to settle.
+- Agreed M0: project setup + core boundary test, deployed, grid rendering, the whole keymap except undo, Givens unchangeable, paste import with parsing only (no validation).
+- Agreed M1: undo/redo, import validation, `I` field + replace confirmation, all feedback (Conflicts, Elimination, Mistakes, Solved), autosave.
+- Three boundary calls confirmed: undo in M1 (it's history, entangled with Elimination and autosave); paste in M0 minus validation; deploy in M0.
+- The "first playable point" idea is no longer needed — M0 plays that role.
+- `milestones.md` drafted with M0, M1, M2 (built-in puzzles, library, `.sdm`; coloring open), and a "Later" list.
+
+**Deploy target**
+- Decided: **Vercel**, via its GitHub integration — every push to `main` auto-deploys. Alix: that auto-deploy isn't available with their own hosting provider.
+- Consequence: Alix's merge approval is now also the release decision. Added to `AGENTS.md` step 8 so agents know pushing `main` ships.

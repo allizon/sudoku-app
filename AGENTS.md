@@ -51,7 +51,7 @@ Each step ends at its **checkpoint**; move to the next step only once it is met.
    - the diff command: `git diff main...<branch>`
 
    Checkpoint: Alix approves the merge.
-8. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Checkpoint: `main` contains the branch's commits and the branch is gone.
+8. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Pushing `main` deploys to production (Vercel), so push `main` only after Alix's approval in step 7. Checkpoint: `main` contains the branch's commits and the branch is gone.
 
 ## Review record
 
