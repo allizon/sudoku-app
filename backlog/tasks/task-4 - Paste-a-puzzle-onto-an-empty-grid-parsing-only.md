@@ -3,7 +3,8 @@ id: TASK-4
 title: Paste a puzzle onto an empty grid (parsing only)
 status: To Do
 assignee: []
-created_date: '2026-10-24 19:21'
+created_date: 2026-10-24 19:21
+updated_date: '2026-10-24T21:25:00Z'
 labels:
   - afk
 milestone: m-0
@@ -25,6 +26,8 @@ Spec: import.md §2 (paste on the grid) and §3 (formats, including parse errors
 - Paste imports only onto an empty grid. Once a puzzle is loaded, pasting is refused and the puzzle is left exactly as it was. Reloading the page gives an empty grid again (nothing is saved in M0). Replacing a puzzle is M1 (import §5).
 - Parse errors, and the refusal above, appear as a toast in the top-right corner. This is interim; M1 may revisit.
 
+Fixtures: this task also generates two fixture puzzles, for use in testing and in UI acceptance (the later tasks need a puzzle to load, and Alix needs one to paste when reviewing). Keep them where tests and the UI checks can both reach them, and note their location in the handoff.
+
 Not in this task: the I import field (M1), validation (M1), saving the puzzle (M1). Use the terms in CONTEXT.md exactly.
 <!-- SECTION:DESCRIPTION:END -->
 
@@ -42,4 +45,5 @@ Not in this task: the I import field (M1), validation (M1), saving the puzzle (M
 - [ ] #10 Pasting while a puzzle is already loaded is refused and leaves the puzzle exactly as it was
 - [ ] #11 Parse errors and the refusal appear as a toast in the top-right corner
 - [ ] #12 Parsing lives in src/core/ and is covered by unit tests; the paste handling and toast are covered by UI tests
+- [ ] #13 Two fixture puzzles are generated and available to both tests and UI acceptance checks, with their location noted in the handoff
 <!-- AC:END -->
