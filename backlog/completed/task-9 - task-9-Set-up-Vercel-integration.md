@@ -1,10 +1,10 @@
 ---
 id: TASK-9
 title: Set up Vercel integration
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-24 19:26'
-updated_date: '2026-10-24 19:27'
+updated_date: '2026-10-24 21:15'
 labels: []
 milestone: m-0
 dependencies: []
