@@ -5,6 +5,7 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 ## Sources of truth
 
 - **`CONTEXT.md`** is the glossary. Use its terms exactly in code, tests, and commit messages. When a task uses a word the glossary lacks, or uses a glossary word differently, ask Alix before writing tests.
+- **Backlog.md tickets** (in `backlog/`) hold the tasks and their acceptance criteria.
 - **`docs/spec/`** holds behavior, one file per feature area. Build what the spec states. When the spec is silent or ambiguous on something the tests depend on, ask during step 2; for anything smaller, make a reasonable choice and list it as a **spec gap** in the handoff (step 7).
 
 ## Stack and architecture
@@ -15,7 +16,9 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 
 ## Agents
 
-The **main session** runs the workflow below: it does steps 1, 3, 6, 7, and 8 itself, dispatches the other steps to subagents in `.claude/agents/`, and brings Alix the two checkpoints that are theirs (steps 2 and 7).
+The **main session** runs the workflow below: it does steps 1, 3, 6, 7, and 8 itself, dispatches the other steps to subagents, and brings Alix the two checkpoints that are theirs (steps 2 and 7).
+
+The subagent definitions live in `.agents/claude-agents/`; Claude Code reads them through the `.claude/agents` symlink. The main session handles every Backlog.md ticket operation, including writing the review record; subagents skip the Backlog.md workflow and return their results to the main session.
 
 | Agent           | Step | Job                                                        |
 |-----------------|------|------------------------------------------------------------|
@@ -30,7 +33,7 @@ Give each subagent what its job needs: the task's acceptance criteria, the relev
 
 Each step ends at its **checkpoint**; move to the next step only once it is met.
 
-1. **Branch.** Start a branch or worktree from up-to-date `main`, named `<area>/<short-slug>` (e.g. `keymap/mode-aware-clearing`). Checkpoint: you are on the new branch.
+1. **Branch.** Start a branch or worktree from up-to-date `main`, named `task-<n>/<short-slug>` after the task's Backlog.md ticket (e.g. `task-3/mode-aware-clearing`). Checkpoint: you are on the new branch.
 2. **Tests first** — `test-writer`. Turn the task's acceptance criteria into Vitest tests that fail. Show Alix the list (each test's name and a one-line description), plus any questions. Checkpoint: Alix approves the tests.
 3. **Commit red.** Commit the approved tests: `test(<area>): <summary> (§n)`. Checkpoint: the new tests fail; everything else passes.
 4. **Make it green** — `implementer`. Implement until the full suite passes, leaving the approved tests as written. Commit as `feat(<area>): …` or `fix(<area>): …`; add a `refactor(<area>): …` commit if needed. Checkpoint: full suite green.
@@ -52,7 +55,10 @@ Each step ends at its **checkpoint**; move to the next step only once it is met.
 
 ## Review record
 
-One entry per review round, in the task's ticket (until a ticket system is installed: `docs/reviews/<branch>.md`, with `/` in the branch name replaced by `-`). For each finding: severity (major/minor), what and where, and the resolution — **Fixed** (how) or **Declined** (why).
+One entry per review round. For each finding: severity (major/minor), what and where, and the resolution — **Fixed** (how) or **Declined** (why).
+
+- **Default:** the main session adds each round to the task's Backlog.md ticket through the `backlog` CLI (`backlog task edit --help` lists the options for notes).
+- **When the `backlog` CLI is unavailable** (e.g. a cloud session): write the record to `docs/reviews/<branch>.md` (with `/` in the branch name replaced by `-`), commit it on the branch, and say so in the handoff so a later session with the CLI can copy it into the ticket.
 
 ## Commit messages
 

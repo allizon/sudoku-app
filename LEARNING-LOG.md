@@ -194,6 +194,29 @@ Each entry: what we did, what was decided, and what we learned about specs/break
 - Decided escalation rules: (1) at most two review rounds, then remaining major findings go to Alix; (2) findings the implementer declines are listed at checkpoint 2; (3) spec contradictions (reviewer says code is wrong per spec, implementer says the spec is wrong) go to Alix immediately — they're spec gaps, not for agents to settle.
 
 **Drafts written (uncommitted, for Alix's review alongside the Backlog.md install)**
-- `.claude/agents/`: `test-writer.md`, `implementer.md`, `code-reviewer.md`, `ux-reviewer.md`. Reviewers have no edit tools. Each ends on a checkpoint; the reviewers' checkpoint requires checking every relevant rule before an empty findings list counts.
+- Agent files: `test-writer.md`, `implementer.md`, `code-reviewer.md`, `ux-reviewer.md` — parked in `_drafts/claude-agents/` because remote tools can't write into `.claude/`; Alix moves them to `.claude/agents/`. Reviewers have no edit tools. Each ends on a checkpoint; the reviewers' checkpoint requires checking every relevant rule before an empty findings list counts.
 - `AGENTS.md`: new "Agents" section (who does which step); workflow grew from 7 to 8 steps with a **Review** step (5); handoff now includes a review summary with every declined finding; new "Review record" section.
 - Claude's own calls, flagged for review: the implementer may not change approved tests (it stops and reports instead); the ux-reviewer's five review areas (keyboard, visible state, feedback, accessibility, clarity), with WCAG AA as the contrast bar; reviewers flag disagreements with the spec as "spec questions."
+
+## 2026-10-24 — Backlog.md installed, agent files moved
+
+- Alix installed Backlog.md, moved the agent files to `.agents/claude-agents/`, and pushed everything to origin.
+- Backlog.md config: `task_prefix: "task"`, statuses To Do / In Progress / Done, `auto_commit: false`.
+- `backlog init` appended a `<CRITICAL_INSTRUCTION>` block to `AGENTS.md`: run `backlog instructions overview` at the start of each conversation, read task-specific guides before lifecycle actions, and change tickets only via the `backlog` CLI, never by editing their files.
+- Observations (Claude), raised for discussion:
+  - `AGENTS.md` says the subagents live in `.claude/agents/`, which is where Claude Code looks for them; they're now in `.agents/claude-agents/`.
+  - History has a merge commit (`d9e0ad1`): the Backlog.md commit landed on `main` while `agent-personas` was open, so a fast-forward wasn't possible without a rebase first. Also one commit with the message `[agent-personas] -m`.
+  - The Backlog.md rule "only via the CLI" affects the review record: agents must write review rounds into tickets with `backlog` commands. Claude's cloud workspace can't run the CLI (npm is blocked), but local sessions can.
+- Alix's responses:
+  - `.agents/` was deliberate: Alix wants the setup to be agent-agnostic. Asked whether the docs should point at `.agents/` instead.
+  - On the merge commit: "I didn't do the process right, that's on me. New mistakes next time!"
+  - On the Backlog.md block: asked for a recommended fix.
+- **Lesson:** the first time the process met real work, the human skipped a step (rebase before merge). The checkpoints only work if they're actually followed — for people as much as for agents.
+
+**Fixes (branch `tooling/agents-dir-and-backlog`)**
+- `.agents/` is the agent-agnostic source of truth for agent definitions; Claude Code reads them via a `.claude/agents → ../.agents/claude-agents` symlink (Alix created it). `AGENTS.md` now points at `.agents/`.
+- The main session owns all Backlog.md ticket operations, including the review record; subagents skip the Backlog.md workflow. Written in our "Agents" section, outside the Backlog-managed block so upgrades won't overwrite it.
+- Review record: written into the ticket via the `backlog` CLI by default; when the CLI is unavailable (cloud sessions), `docs/reviews/<branch>.md` on the branch, flagged in the handoff. Alix: will work *mostly* on the Mac, sometimes in cloud sessions — hence the fallback.
+- Branch naming: `task-<n>/<short-slug>`, from Backlog.md's `task` prefix.
+- Backlog tickets added to "Sources of truth" as the home of tasks and acceptance criteria.
+- This change itself went through a branch and the merge checkpoint.
