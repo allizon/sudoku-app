@@ -1,11 +1,11 @@
 ---
 id: TASK-1
 title: Scaffold the app and show an empty grid
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: 2026-10-24 19:21
-updated_date: '2026-10-24T20:07:00Z'
+updated_date: '2026-10-24T20:15:00Z'
 labels:
   - afk
 milestone: m-0
@@ -29,23 +29,23 @@ Use the terms in CONTEXT.md exactly.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The project installs, builds, and runs its tests with standard npm scripts (dev, build, test)
-- [ ] #2 src/core/ exists and holds the puzzle's representation: a 9×9 grid of cells
-- [ ] #3 A test fails if any file in src/core/ imports from outside src/core/ (other than the standard library), including React or DOM APIs
-- [ ] #4 The boundary test is shown to catch a violation (e.g. a deliberately bad import makes it fail) and passes on the real code
-- [ ] #5 Opening the app shows an empty 9×9 grid with the nine 3×3 boxes visibly distinguished
-- [ ] #6 README.md no longer says "No code yet" and states how to install, run, and test
+- [x] #1 The project installs, builds, and runs its tests with standard npm scripts (dev, build, test)
+- [x] #2 src/core/ exists and holds the puzzle's representation: a 9×9 grid of cells
+- [x] #3 A test fails if any file in src/core/ imports from outside src/core/ (other than the standard library), including React or DOM APIs
+- [x] #4 The boundary test is shown to catch a violation (e.g. a deliberately bad import makes it fail) and passes on the real code
+- [x] #5 Opening the app shows an empty 9×9 grid with the nine 3×3 boxes visibly distinguished
+- [x] #6 README.md no longer says "No code yet" and states how to install, run, and test
 <!-- AC:END -->
 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
 1. Branch task-1/scaffold-empty-grid
-2. Main session sets up toolchain only (package.json scripts, Vite, Vitest, TS config) so tests can run
-3. test-writer: failing tests for grid model in src/core/, core import boundary, empty grid render with 3x3 boxes
-4. Alix approves tests; commit red
-5. implementer: src/core grid, React app, README
-6. code-reviewer + ux-reviewer; tidy; hand off
+2. Main session set up toolchain only (npm scripts, Vite, Vitest, strict TS)
+3. test-writer: failing tests for empty Puzzle in src/core/, core boundary checker, empty grid render; Alix approved; committed red
+4. implementer: src/core/puzzle.ts, src/tooling/core-boundary.ts, src/ui/App.tsx + CSS, entry files, README
+5. Two review rounds (code + UX); added tsconfig.core.json type-check of src/core/ without DOM/Node types, core tests in node environment
+6. Hand off; Alix approved merge
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -84,3 +84,9 @@ Code review (verifying round 1 fixes):
 - minor non-.ts real-file scan has nothing to check today — Declined: guards future .js/.mjs/etc. files at no cost.
 Verified by main session: probes for both majors now flagged; 104/104 tests; build green. No open majors.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Scaffolded the app (React 19, Vite, Vitest, strict TS; npm scripts dev/build/test/typecheck). src/core/puzzle.ts holds the Puzzle as a 9x9 grid of cells plus boxOf. The core boundary is enforced two ways: a source scanner (src/tooling/core-boundary.ts) for outside imports, triple-slash references, DOM/Node globals and globalThis/self; and tsconfig.core.json type-checking src/core/ with ES2023 only, run in typecheck/build. The app shows an empty 9x9 grid with thick 3x3 box lines, equal cells, no scrolling down to 420px tall. README has install/run/test steps. Verified: npm ci, 104/104 tests, build green, grid checked in a browser at desktop and phone widths. Follow-ups: TASK-3 should add cell labels incl. box and container focus with aria-activedescendant; open spec questions on grid size cap, dark mode, entry-mode indicator placement.
+<!-- SECTION:FINAL_SUMMARY:END -->
