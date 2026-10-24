@@ -1,0 +1,13 @@
+{
+  // src/core/ type-checked on its own, with only the ES standard library:
+  // no DOM lib and no Node or Vitest types, so any DOM or Node use fails to
+  // compile (AGENTS.md "Stack and architecture"). Test files are checked by
+  // tsconfig.json instead, since they use Vitest globals.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src/core"],
+  "exclude": ["src/core/**/*.test.ts", "src/core/**/*.test.tsx"]
+}
