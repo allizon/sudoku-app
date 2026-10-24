@@ -11,8 +11,8 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 ## Stack and architecture
 
 - TypeScript, React, Vite, Vitest. Test-driven.
-- Game logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
-- All saved state (games in progress, undo history, imported puzzles) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
+- Puzzle logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
+- All saved state (the puzzle in progress, its undo history, imported puzzles) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
 
 ## Agents
 

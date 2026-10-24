@@ -79,7 +79,7 @@ What counts as one undo step:
 Rules:
 
 - Undo restores the cell exactly as it was, including hidden Candidates and Corner marks (e.g. undoing `X` brings everything back).
-- Undo/redo history is saved with the game and survives a page refresh.
+- Undo/redo history is saved with the puzzle and survives a page refresh.
 - Making a new change after undoing discards the redo history.
 
 ## 7. Interaction with Givens and placed digits

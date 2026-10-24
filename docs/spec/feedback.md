@@ -31,7 +31,7 @@ Terms (Given, Candidate, Conflict, Mistake, Solved, …) are defined in [`CONTEX
 - Mistakes are evaluated after every change to the grid (including undo and redo); the flag disappears when the digit is removed, replaced, or undone.
 - A Mistake blocks nothing: Elimination still happens (§3), and nothing is counted.
 - When a puzzle has no known Solution, no Mistakes are shown for it, and the app states that mistake checking is unavailable for this puzzle — so the absence of flags is never read as "no Mistakes."
-- How a puzzle gets a known Solution is specified in `import.md` (_not yet written_).
+- How a puzzle gets a known Solution is specified in [`import.md`](./import.md) §4.
 
 ## 5. Solved
 
@@ -39,5 +39,5 @@ Terms (Given, Candidate, Conflict, Mistake, Solved, …) are defined in [`CONTEX
 - A Solved grid is locked: digits and Candidates cannot be changed.
 - Selection and movement still work, so the player can look over the finished grid.
 - Undo still works; undoing out of the Solved state unlocks the grid.
-- The Solved state is saved with the game and survives a refresh.
-- A Solved grid never contains a Mistake. This relies on every puzzle with a known Solution having exactly one solution, which `import.md` guarantees (_not yet written_).
+- The Solved state is saved with the puzzle and survives a refresh.
+- A Solved grid never contains a Mistake. This relies on every puzzle with a known Solution having exactly one solution, which [`import.md`](./import.md) guarantees (§1, §4).

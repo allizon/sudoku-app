@@ -6,9 +6,17 @@ A personal, keyboard-first web app for solving classic 9×9 sudoku puzzles that 
 
 ### The puzzle
 
+**Puzzle**:
+The 9×9 grid being solved: its Givens and everything the player has entered. The app holds one puzzle at a time.
+_Avoid_: Game
+
 **Given**:
 A digit that is part of the puzzle as imported. Givens are fixed and cannot be changed by the player.
 _Avoid_: Clue, starting number, fixed cell
+
+**Placed digit**:
+A digit the player has entered in a cell in fill mode. Unlike a Given, it can be removed or replaced.
+_Avoid_: Entry, value, guess, answer
 
 **Solution**:
 The single completed grid that satisfies the rules and agrees with every Given.
@@ -17,6 +25,16 @@ _Avoid_: Answer, answer key
 **Peer**:
 A cell that shares a row, column, or box with a given cell. Every cell has 20 Peers.
 _Avoid_: Neighbor, buddy, related cell
+
+### Playing
+
+**Selected cell**:
+The one cell that key presses act on. Exactly one cell is selected at all times.
+_Avoid_: Cursor, active cell, focused cell
+
+**Entry mode**:
+What a digit key does to the Selected cell: in fill mode it places a digit, in center mode it toggles a Center mark, and in corner mode it toggles a Corner mark. The sticky entry mode is changed with `N`; a letter chord overrides it while held.
+_Avoid_: Input mode, note mode, pencil mode
 
 ### Candidates
 

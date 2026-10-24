@@ -13,7 +13,7 @@ Terms (Given, Solution, Conflict, …) are defined in [`CONTEXT.md`](../../CONTE
 - Pasting (Cmd+V on macOS, Ctrl+V elsewhere) while the grid has focus imports the clipboard text.
 - `I` opens a visible import text field, for reviewing pasted text or typing a puzzle by hand; submitting it imports its contents. The same field is reachable with the mouse.
 - Both routes go through the same parsing (§3) and validation (§4).
-- The replace-game confirmation (§5) is keyboard-driven: Enter confirms, Escape cancels, and focus starts on cancel.
+- The replace-puzzle confirmation (§5) is keyboard-driven: Enter confirms, Escape cancels, and focus starts on cancel.
 
 ## 3. Formats
 
@@ -45,14 +45,14 @@ Every imported puzzle is checked in this order; the first failure rejects it.
 
 - The solve runs at import time, and the import waits for it to finish.
 
-## 5. Replacing the current game
+## 5. Replacing the current puzzle
 
-The app holds one game at a time.
+The app holds one puzzle at a time.
 
 - When the current puzzle is unfinished (at least one digit or Candidate entered, and not Solved), an accepted import first asks the player to confirm replacing it.
 - When the current puzzle is Solved, or nothing has been entered, an accepted import replaces it without asking.
-- An accepted import starts a fresh game: the new Givens, an empty undo history, fill mode, and row 1, column 1 selected.
-- A rejected import leaves the current game exactly as it was.
+- An accepted import starts the new puzzle fresh: its Givens, an empty undo history, fill mode, and row 1, column 1 selected.
+- A rejected import leaves the current puzzle exactly as it was.
 
 ## 6. Test samples
 
