@@ -5,7 +5,7 @@ Terms (Given, Candidate, Center mark, Corner mark, …) are defined in [`CONTEXT
 
 ## 1. Principles
 
-- The app is fully playable from the keyboard; the mouse is never required.
+- The app is fully playable from the keyboard. The mouse is allowed but never required: clicking a cell makes it the Selected cell.
 - Digit keys are identified by **physical key**, not by the character produced (e.g. a key that types `!` with Shift held is still "1").
 - Cmd + digit is never used (on macOS the browser reserves it for tab switching).
 
