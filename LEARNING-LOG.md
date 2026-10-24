@@ -141,3 +141,34 @@ Each entry: what we did, what was decided, and what we learned about specs/break
 - Alix on chords: one step per digit — "if I've gone C-1-2-3, then we should undo C-3-2-1 in order."
 - Why persist history: without it, a refresh would be a hidden penalty.
 - Written into `keymap.md` §6.
+
+**Q16: Movement**
+- Agreed: arrows move one cell; same-row/same-column wrap; Givens are selectable; always one selected cell (row 1, column 1 at start); no letter-key movement.
+- Agreed: multi-cell selection is pushed to a later milestone, even though it would help Snyder marking; start with one cell at a time.
+- `keymap.md` now has every section decided (§4 written; added §8 reserved keys and §9 not-in-this-version). Awaiting Alix's review.
+- Observation (Claude): the keymap went from one line in the sketch ("N toggles note/fill") to nine sections in about an hour of Q&A, and most of the new content is edge cases. That ratio is probably typical for an agent-ready spec.
+
+## 2026-10-23 — Repo setup and development process
+
+- Repo initialized on `main` (matching Alix's other repos: local identity, Node `.gitignore` adapted for Vite, `.nvmrc` 24.15.0, README). First commit `0dbb761`, pushed to https://github.com/allizon/sudoku-app.
+- Practical note: the sandbox on Alix's computer can't reach GitHub over SSH, so Claude pushes from its own workspace (via a git bundle).
+
+**Branching and merging**
+- Alix: as the only human on the project, doesn't need PRs to get work into `main`. Agents must work in branches or worktrees; once Alix approves the work, it can be merged straight to `main` without a PR.
+- Open: what "approve" consists of, and what has to be true before a merge (see next question).
+- Decided (as an experiment; "we can always go back to PRs later"): two checkpoints per chunk — (1) approve tests before implementation, (2) a "ready to merge" handoff afterwards: what changed, test results, anything the agent decided that the spec didn't cover, and a pointer to the diff.
+- Alix's inclination for merge style: squash merges. Discussing trade-offs.
+- Decided (as an experiment): **fast-forward merges** to start. Alix: "that process is new to me, so I want to see how it feels." Squash stays an option to revisit.
+- Consequence: every branch commit lands on `main`, so commit hygiene on branches matters (see next question).
+
+**Commit conventions on branches**
+- Agreed: one commit per TDD step — `test:` (approved, failing tests) → `feat:`/`fix:` (passes) → optional `refactor:`. Conventional-commit style, as in Alix's other repos, with the spec section named (e.g. `feat(keymap): mode-aware clearing (§5)`).
+- Agreed: no wip/typo commits; the agent tidies the branch, rebases onto `main` before the handoff, and merges with `--ff-only`.
+- Alix: OK with `test:` commits failing on `main` temporarily — the red → green history is worth it. (If bisecting later, `git bisect skip` those commits.)
+
+**`AGENTS.md` (process half)**
+- Written earlier than planned, while the process was fresh, so the first real task can test whether it works. `CLAUDE.md` is one line, `@AGENTS.md`, as in `draft-zero`.
+- Contents: sources of truth (`CONTEXT.md`, `docs/spec/`), stack, the core boundary, the 7-step task workflow with a checkpoint per step, and commit conventions. Feature behavior stays in `docs/spec/`.
+- Claude's own call, flagged for review: ask about spec gaps that affect tests during the test step; record smaller ones as "spec gaps" in the handoff.
+- Left out on purpose: the single storage interface (still unconfirmed), and commands (no `package.json` yet — the environment should be the source of truth for those).
+- Awaiting Alix's review before committing — the first use of the "approve, then merge" flow, applied to the process doc itself.
