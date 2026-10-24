@@ -58,7 +58,9 @@ Delete and Backspace behave identically and clear one layer of the selected cell
 | center (or `C` held)     | removes all Center marks in the cell                                                |
 | corner (or `S` held)     | removes all Corner marks in the cell                                                |
 
-`X` clears **everything** from the selected cell — placed digit, Center marks, and Corner marks — regardless of mode.
+On a cell holding a placed digit, Delete/Backspace in center or corner mode (or with `C` or `S` held) does nothing: the Candidates hidden under the digit are kept. Delete/Backspace never deletes hidden Candidates.
+
+`X` clears **everything** from the selected cell — placed digit, Center marks, and Corner marks, including hidden ones — regardless of mode.
 
 On a Given, neither Delete/Backspace nor `X` does anything.
 
