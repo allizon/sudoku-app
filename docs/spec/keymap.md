@@ -7,7 +7,9 @@ Terms (◆GIVEN, ◆CANDIDATE, ◆CENTER MARK, ◆CORNER MARK, …) are defined 
 
 - The app is fully playable from the keyboard. The mouse is allowed but never required: clicking a cell makes it the ◆SELECTED CELL.
 - Digit keys are identified by **physical key**, not by the character produced (e.g. a key that types `!` with Shift held is still "1").
-- Cmd + digit is never used (on macOS the browser reserves it for tab switching).
+- The number-row keys (1–9) and the numpad keys (1–9) both count as digit keys. `0` is not a digit key.
+- Cmd + digit is never used (on macOS the browser reserves it for tab switching). Ctrl + digit and Alt + digit are never used either. Shift + digit is a digit press.
+- Key auto-repeat is ignored: holding a digit key acts once, on the first press.
 
 ## 2. Entry modes
 
