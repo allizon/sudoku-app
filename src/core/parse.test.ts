@@ -261,3 +261,38 @@ describe('parsePuzzle: wrong count and a bad character together', () => {
     expect(parseErrorsFor(text)).toEqual(['found 79 cells, expected 81', "unexpected 'Z' at row 1, column 3"]);
   });
 });
+
+describe('parsePuzzle: naming a character that cannot be seen', () => {
+  // Written as escapes, since the characters themselves are invisible.
+  it.each([
+    ['U+200B (zero-width space)', '\u200B'],
+    ['U+200C (zero-width non-joiner)', '\u200C'],
+    ['U+200D (zero-width joiner)', '\u200D'],
+    ['U+2060 (word joiner)', '\u2060'],
+    ['U+00AD (soft hyphen)', '\u00AD'],
+  ])('names %s by its code point and name', (named, char) => {
+    expect(parseErrorFor(withCharAt(SAMPLE_A_ZEROS, 40, char))).toBe(`unexpected ${named} at row 5, column 5`);
+  });
+
+  it.each([
+    ['a control character (Cc)', '\u0007', 'U+0007'],
+    ['a format character (Cf)', '\u2066', 'U+2066'],
+    ['a combining mark (M)', '\u0301', 'U+0301'],
+    ['a separator that \\s does not match', '\u180E', 'U+180E'],
+    ['a format character outside the BMP', '\u{E0001}', 'U+E0001'],
+  ])('names %s by its code point alone', (_kind, char, code) => {
+    expect(parseErrorFor(withCharAt(SAMPLE_A_ZEROS, 0, char))).toBe(`unexpected ${code} at row 1, column 1`);
+  });
+
+  it('removes a byte order mark (U+FEFF) as whitespace, since \\s matches it', () => {
+    expect(parsed('\uFEFF' + SAMPLE_A_ZEROS)).toEqual(parsed(SAMPLE_A_ZEROS));
+  });
+
+  it('keeps the quoted form for a visible character', () => {
+    expect(parseErrorFor(withCharAt(SAMPLE_A_ZEROS, 0, 'é'))).toBe("unexpected 'é' at row 1, column 1");
+  });
+
+  it("names a character outside the BMP whole: \"unexpected '😀' at row 1, column 1\"", () => {
+    expect(parseErrorFor('😀' + SAMPLE_A_ZEROS.slice(1))).toBe("unexpected '😀' at row 1, column 1");
+  });
+});
