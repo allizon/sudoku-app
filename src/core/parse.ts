@@ -24,6 +24,38 @@ const DIGITS: Readonly<Record<string, Digit>> = {
   '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
 };
 
+/**
+ * Characters a player cannot see in the pasted text: control, format,
+ * surrogate, private-use and unassigned characters (C), combining marks (M),
+ * and any separator (Z) that whitespace removal left behind.
+ */
+const INVISIBLE = /^[\p{C}\p{M}\p{Z}]$/u;
+
+/**
+ * Names for the invisible characters a paste most often carries. The byte
+ * order mark (U+FEFF) is not here: `\s` matches it, so it is removed with the
+ * whitespace and never reaches a parse error.
+ */
+const INVISIBLE_NAMES: ReadonlyMap<number, string> = new Map([
+  [0x200b, 'zero-width space'],
+  [0x200c, 'zero-width non-joiner'],
+  [0x200d, 'zero-width joiner'],
+  [0x2060, 'word joiner'],
+  [0x00ad, 'soft hyphen'],
+]);
+
+/**
+ * A character as a parse error names it: quoted when visible, otherwise by
+ * its code point (`U+200B`), with a name when it has one.
+ */
+function describeChar(char: string): string {
+  if (!INVISIBLE.test(char)) return `'${char}'`;
+  const codePoint = char.codePointAt(0) ?? 0;
+  const code = `U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}`;
+  const name = INVISIBLE_NAMES.get(codePoint);
+  return name === undefined ? code : `${code} (${name})`;
+}
+
 /** The cell a character stands for, or undefined when it stands for none. */
 function cellFor(char: string): Cell | undefined {
   if (EMPTY_CHARS.has(char)) return { kind: 'empty' };
@@ -37,7 +69,10 @@ function cellFor(char: string): Cell | undefined {
  * and `.`, `0`, `-` as empty cells.
  */
 export function parsePuzzle(text: string): ParseResult {
-  // Array.from splits by code point, so a character outside the BMP is named whole.
+  // Array.from splits by code point, so a character outside the BMP (😀) is
+  // one cell and is named whole. A character built from several code points
+  // (a flag, an emoji with a skin tone, a letter plus a combining mark) counts
+  // as several cells, and only its first code point is named.
   const chars = Array.from(text.replace(SEPARATORS, ''));
   const errors: ParseError[] = [];
   const cells: Cell[] = [];
@@ -51,7 +86,7 @@ export function parsePuzzle(text: string): ParseResult {
     if (cell === undefined) {
       const row = Math.floor(index / GRID_SIZE) + 1;
       const column = (index % GRID_SIZE) + 1;
-      errors.push({ message: `unexpected '${char}' at row ${row}, column ${column}` });
+      errors.push({ message: `unexpected ${describeChar(char)} at row ${row}, column ${column}` });
       break;
     }
     cells.push(cell);
