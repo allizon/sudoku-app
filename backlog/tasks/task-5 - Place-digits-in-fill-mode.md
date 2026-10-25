@@ -4,7 +4,7 @@ title: Place digits in fill mode
 status: To Do
 assignee: []
 created_date: 2026-10-24 19:22
-updated_date: '2026-10-25T22:35:00Z'
+updated_date: '2026-10-25T22:37:00Z'
 labels:
   - afk
 milestone: m-0
@@ -47,4 +47,6 @@ No major findings.
 - minor, forced-colors (ux-reviewer): placed vs given collapses to weight only. Fixed: .placed is italic, which survives forced-colors; CSS-rule test in placed-style.test.ts (bd1b190).
 - minor, small cells (ux-reviewer): placed vs given subtle at ~30px. Fixed as a side effect of the italic (bd1b190); recheck once Candidates exist.
 - Raised, not defects: no dark value for --placed-digit (no dark scheme yet, task-10); silent no-op on a Given; Shift meaning once chords exist; no undo yet.
+
+Italics (0b835e8) dropped at Alix's request (d059731), with the italic CSS test; the forced-colors finding is therefore open again: placed and given differ only by weight there. Recheck when the display spec is next touched or once Candidates exist.
 <!-- SECTION:NOTES:END -->
