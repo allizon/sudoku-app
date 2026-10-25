@@ -10,6 +10,11 @@
   --page-text: #222;
   --page-background: #fafafa;
   --cell-background: #fff;
+  --given-digit: #111;
+  --focus-ring: #2563eb;
+  --toast-text: #fff;
+  --toast-background: #b42318;
+  --toast-shadow: rgb(0 0 0 / 25%);
 
   font-family: system-ui, sans-serif;
   color: var(--page-text);
@@ -45,6 +50,12 @@ body {
   background: var(--cell-background);
 }
 
+/* The grid takes focus so a paste can reach it (import.md §2). */
+.grid:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .row {
   display: flex;
 }
@@ -57,9 +68,13 @@ body {
 .cell {
   --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
   --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines)) / 9);
+  --cell-size: min(58px, var(--fit-width), var(--fit-height));
   box-sizing: content-box;
-  width: min(58px, var(--fit-width), var(--fit-height));
+  width: var(--cell-size);
   aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-right: var(--thin-line);
   border-bottom: var(--thin-line);
 }
@@ -79,4 +94,33 @@ body {
 
 .row:nth-child(3n):not(:last-child) .cell {
   border-bottom: var(--box-line);
+}
+
+/* A Given: its digit, large and bold, centered in the cell. */
+.given {
+  font-size: calc(var(--cell-size) * 0.62);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--given-digit);
+}
+
+/* Parse errors and the refusal, stacked in the top-right corner (milestones.md M0). */
+.toasts {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.toast {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  color: var(--toast-text);
+  background: var(--toast-background);
+  box-shadow: 0 2px 8px var(--toast-shadow);
+  cursor: pointer;
 }
