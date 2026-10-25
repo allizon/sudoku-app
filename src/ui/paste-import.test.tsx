@@ -20,8 +20,24 @@ const REFUSAL = 'A puzzle is already loaded — reload the page to start a new o
 /** How long a toast stays before dismissing itself (Alix, TASK-4 step 2). */
 const TOAST_MS = 10_000;
 
+/** The one live region that holds every toast (UX-6, approved by Alix). */
+const toastRegion = () => screen.getByRole('alert');
+
+/** Every toast on screen, in document order: the live region's children. */
+const toastsOnScreen = () =>
+  [...toastRegion().children].filter((toast): toast is HTMLElement => toast instanceof HTMLElement);
+
+/** The single toast on screen; fails when there is not exactly one. */
+function onlyToast(): HTMLElement {
+  const toasts = toastsOnScreen();
+  expect(toasts).toHaveLength(1);
+  const [toast] = toasts;
+  if (toast === undefined) throw new Error('expected one toast');
+  return toast;
+}
+
 /** The text of every toast on screen, in document order. */
-const toastTexts = () => screen.queryAllByRole('alert').map((toast) => (toast.textContent ?? '').trim());
+const toastTexts = () => toastsOnScreen().map((toast) => (toast.textContent ?? '').trim());
 
 function renderApp() {
   render(<App />);
@@ -119,12 +135,12 @@ describe('Paste import: pasting onto an empty grid loads the Puzzle', () => {
     focusGrid(grid);
     paste(puzzle1);
     expect(gridText(grid)).toBe(normalized(puzzle1));
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('a successful paste shows no toast', () => {
     renderAndPaste(puzzle1);
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('pasting while the grid does not have focus loads nothing', () => {
@@ -207,7 +223,7 @@ describe('Paste import: a rejected paste shows a parse error and leaves the grid
 
   it('the parse error toast is outside the grid', () => {
     const grid = renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
-    const [toast] = screen.getAllByRole('alert');
+    const [toast] = toastsOnScreen();
     expect(toast).toBeDefined();
     expect(grid.contains(toast ?? null)).toBe(false);
   });
@@ -233,11 +249,11 @@ describe('Paste import: pasting while a Puzzle is already loaded is refused', ()
 
   it('the refusal appears as a toast: "A puzzle is already loaded — reload the page to start a new one."', () => {
     const grid = renderAndPaste(puzzle1);
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
     focusGrid(grid);
     paste(puzzle2);
     expect(toastTexts()).toEqual([REFUSAL]);
-    expect(grid.contains(screen.getByRole('alert'))).toBe(false);
+    expect(grid.contains(onlyToast())).toBe(false);
   });
 
   it('pasting unparseable text shows only the refusal, not a parse error, and leaves the Puzzle as it was', () => {
@@ -272,7 +288,7 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
   it('a parse error toast is gone at 10 seconds', () => {
     renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
     wait(TOAST_MS);
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('the refusal toast is still shown just before 10 seconds and gone at 10 seconds', () => {
@@ -282,24 +298,24 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
     wait(TOAST_MS - 1);
     expect(toastTexts()).toEqual([REFUSAL]);
     wait(1);
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('clicking a toast dismisses it before 10 seconds', () => {
     renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
-    fireEvent.click(screen.getByRole('alert'));
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    fireEvent.click(onlyToast());
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('clicking anywhere on a toast dismisses it, including its text', () => {
     renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
     fireEvent.click(screen.getByText('found 79 cells, expected 81', { exact: false }));
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('with two toasts, clicking the first leaves the second', () => {
     renderAndPaste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79));
-    const [first] = screen.getAllByRole('alert');
+    const [first] = toastsOnScreen();
     fireEvent.click(first as HTMLElement);
     expect(toastTexts()).toEqual(["unexpected 'x' at row 5, column 5"]);
   });
@@ -312,10 +328,10 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
     focusGrid(grid);
     paste(puzzle2); // second refusal, at 5 s
     expect(toastTexts()).toEqual([REFUSAL, REFUSAL]);
-    const [first, second] = screen.getAllByRole('alert');
+    const [first, second] = toastsOnScreen();
 
     wait(TOAST_MS - 5_000 - 1); // just before 10 s
-    expect(screen.queryAllByRole('alert')).toHaveLength(2);
+    expect(toastsOnScreen()).toHaveLength(2);
 
     wait(1); // 10 s: the first is gone, the second remains
     expect(first).not.toBeInTheDocument();
@@ -326,14 +342,34 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
     expect(second).toBeInTheDocument();
 
     wait(1); // 15 s: 10 s after the second appeared
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
   });
 
   it('with two toasts, both are gone at 10 seconds', () => {
     renderAndPaste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79));
     wait(TOAST_MS - 1);
-    expect(screen.queryAllByRole('alert')).toHaveLength(2);
+    expect(toastsOnScreen()).toHaveLength(2);
     wait(1);
-    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(toastsOnScreen()).toHaveLength(0);
+  });
+});
+
+describe('Paste import: toasts share one live region', () => {
+  it('one live region is present before any toast, and empty', () => {
+    renderApp();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(toastsOnScreen()).toHaveLength(0);
+  });
+
+  it('two toasts are two plain children of that one region', () => {
+    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79));
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(toastsOnScreen()).toHaveLength(2);
+    for (const toast of toastsOnScreen()) expect(toast).not.toHaveAttribute('role');
+  });
+
+  it('the live region is outside the grid', () => {
+    const grid = renderApp();
+    expect(grid.contains(toastRegion())).toBe(false);
   });
 });
