@@ -30,10 +30,13 @@ type ToastsProps = {
   readonly onDismiss: (id: number) => void;
 };
 
-/** The stack of toasts in the top-right corner. */
+/**
+ * The stack of toasts in the top-right corner. The stack is one live region,
+ * always rendered, so screen readers announce each toast as it is added.
+ */
 export function Toasts({ toasts, onDismiss }: ToastsProps) {
   return (
-    <div className="toasts">
+    <div className="toasts" role="alert">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
@@ -56,7 +59,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [id, onDismiss]);
 
   return (
-    <div className="toast" role="alert" onClick={() => onDismiss(id)}>
+    <div className="toast" onClick={() => onDismiss(id)}>
       {message}
     </div>
   );
