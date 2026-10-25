@@ -5,9 +5,15 @@
   --page-padding: 1rem;
   /* 6 thin lines + 2 inner box lines + 2 outer box lines across the grid. */
   --lines: 18px;
+
+  /* Color tokens: every color the app uses (display.md §2). */
+  --page-text: #222;
+  --page-background: #fafafa;
+  --cell-background: #fff;
+
   font-family: system-ui, sans-serif;
-  color: #222;
-  background: #fafafa;
+  color: var(--page-text);
+  background: var(--page-background);
 }
 
 body {
@@ -36,7 +42,7 @@ body {
   display: flex;
   flex-direction: column;
   border: var(--box-line);
-  background: #fff;
+  background: var(--cell-background);
 }
 
 .row {
