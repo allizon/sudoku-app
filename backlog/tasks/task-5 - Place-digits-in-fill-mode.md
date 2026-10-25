@@ -1,7 +1,7 @@
 ---
 id: TASK-5
 title: Place digits in fill mode
-status: To Do
+status: Done
 assignee: []
 created_date: 2026-10-24 19:22
 updated_date: '2026-10-25T22:37:00Z'
@@ -27,14 +27,14 @@ Spec: keymap §1 (principles) and the fill-mode table in keymap §7. ◆CANDIDAT
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Pressing a digit key 1–9 on an empty ◆SELECTED CELL places that digit
-- [ ] #2 Pressing the same digit on a cell holding that ◆PLACED DIGIT removes it (toggle)
-- [ ] #3 Pressing a different digit on a cell holding a ◆PLACED DIGIT replaces it
-- [ ] #4 Pressing a digit on a ◆GIVEN does nothing
-- [ ] #5 Digit keys are identified by physical key, not by the character produced (e.g. Shift+1 still counts as 1)
-- [ ] #6 Cmd+digit is never handled by the app, so the browser's tab switching on macOS keeps working
-- [ ] #7 ◆PLACED DIGITs are visibly distinct from ◆GIVENs
-- [ ] #8 Fill-mode rules live in src/core/ and are covered by unit tests; the keyboard wiring is covered by UI tests
+- [x] #1 Pressing a digit key 1–9 on an empty ◆SELECTED CELL places that digit
+- [x] #2 Pressing the same digit on a cell holding that ◆PLACED DIGIT removes it (toggle)
+- [x] #3 Pressing a different digit on a cell holding a ◆PLACED DIGIT replaces it
+- [x] #4 Pressing a digit on a ◆GIVEN does nothing
+- [x] #5 Digit keys are identified by physical key, not by the character produced (e.g. Shift+1 still counts as 1)
+- [x] #6 Cmd+digit is never handled by the app, so the browser's tab switching on macOS keeps working
+- [x] #7 ◆PLACED DIGITs are visibly distinct from ◆GIVENs
+- [x] #8 Fill-mode rules live in src/core/ and are covered by unit tests; the keyboard wiring is covered by UI tests
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -50,3 +50,9 @@ No major findings.
 
 Italics (0b835e8) dropped at Alix's request (d059731), with the italic CSS test; the forced-colors finding is therefore open again: placed and given differ only by weight there. Recheck when the display spec is next touched or once Candidates exist.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Digits 1-9 (number row and numpad) now place, toggle and replace ◆PLACED DIGITs in the ◆SELECTED CELL; ◆GIVENs are untouched. Digits are read by physical key (Shift allowed); Cmd, Ctrl, Alt and key repeat are ignored. ◆PLACED DIGITs are blue and lighter than ◆GIVENs. Rules in src/core/fill.ts and keys.ts with unit tests; wiring covered by UI tests. 440 tests pass, typecheck clean. Review: one round, no major findings. Risks/follow-ups: forced-colors shows placed vs given by weight only; no dark value for --placed-digit (task-10); silent no-op on a ◆GIVEN; replace-confirmation on paste is task-12.
+<!-- SECTION:FINAL_SUMMARY:END -->
