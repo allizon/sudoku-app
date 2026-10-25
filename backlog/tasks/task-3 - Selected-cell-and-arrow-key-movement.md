@@ -1,10 +1,10 @@
 ---
 id: TASK-3
 title: Selected cell and arrow-key movement
-status: In Progress
+status: Done
 assignee: []
 created_date: 2026-10-24 19:21
-updated_date: '2026-10-25T22:12:00Z'
+updated_date: '2026-10-25T22:17:00Z'
 labels:
   - afk
 milestone: m-0
@@ -28,15 +28,15 @@ Use the terms in CONTEXT.md exactly (◆SELECTED CELL, ◆GIVEN, …).
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Exactly one cell is the ◆SELECTED CELL at all times, and it is clearly visible on the grid
-- [ ] #2 When the app opens, row 1, column 1 is the ◆SELECTED CELL
-- [ ] #3 Each arrow key moves the selection one cell in its direction
-- [ ] #4 Movement wraps within the same row or column: right from column 9 goes to column 1 of the same row, down from row 9 goes to row 1 of the same column, and likewise for left and up
-- [ ] #5 Clicking a cell makes it the ◆SELECTED CELL, including a cell holding a ◆GIVEN
-- [ ] #6 After a click, the arrow keys and other keys keep working from the clicked cell without a further click
-- [ ] #7 Letter keys never move the selection
-- [ ] #8 Letter keys with no meaning in M0 (every letter except N, C, S, X), including I, do nothing
-- [ ] #9 Movement logic lives in src/core/ and is covered by unit tests; the keyboard and click wiring is covered by UI tests
+- [x] #1 Exactly one cell is the ◆SELECTED CELL at all times, and it is clearly visible on the grid
+- [x] #2 When the app opens, row 1, column 1 is the ◆SELECTED CELL
+- [x] #3 Each arrow key moves the selection one cell in its direction
+- [x] #4 Movement wraps within the same row or column: right from column 9 goes to column 1 of the same row, down from row 9 goes to row 1 of the same column, and likewise for left and up
+- [x] #5 Clicking a cell makes it the ◆SELECTED CELL, including a cell holding a ◆GIVEN
+- [x] #6 After a click, the arrow keys and other keys keep working from the clicked cell without a further click
+- [x] #7 Letter keys never move the selection
+- [x] #8 Letter keys with no meaning in M0 (every letter except N, C, S, X), including I, do nothing
+- [x] #9 Movement logic lives in src/core/ and is covered by unit tests; the keyboard and click wiring is covered by UI tests
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -58,3 +58,9 @@ Review record — round 1 (code-reviewer + ux-reviewer), branch task-3/selected-
 
 No open major findings after round 1; no spec contradictions found. Suite 306/306, typecheck clean.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added the SELECTED CELL: pure moveSelection in src/core/selection.ts (wraps within row/column), App.tsx selection state starting at row 1, column 1, arrow-key handling, click-to-select with the grid keeping focus, aria-selected + aria-activedescendant, and a token-based inset ring in App.css. Letters (including I) do nothing; modified arrows are ignored. A pasted PUZZLE resets the selection to row 1, column 1. Verified: full suite 306/306 (core unit tests + jsdom UI tests), typecheck clean, one review round with no open majors (record in notes). Caveats: the ring's visibility is verified only by CSS-text tests and hex-contrast estimates, not in a real browser; no dark-scheme tokens yet; ring size is fixed (revisit when marks are drawn); the no-cell-background rule will clash with future conflict/Mistake tints.
+<!-- SECTION:FINAL_SUMMARY:END -->
