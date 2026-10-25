@@ -160,10 +160,12 @@ body {
   color: var(--given-digit);
 }
 
-/* A placed digit: the same size as a Given, but regular weight and blue. */
+/* A placed digit: the same size as a Given, but regular weight, italic and blue.
+   The italic survives forced-colors mode, where the color difference does not. */
 .placed {
   font-size: calc(var(--cell-size) * 0.62);
   font-weight: 400;
+  font-style: italic;
   line-height: 1;
   color: var(--placed-digit);
 }

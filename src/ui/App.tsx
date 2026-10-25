@@ -15,7 +15,16 @@ const FLASH_MS = 1_000;
 
 /** A cell's accessible name, e.g. "Row 1, column 1, given 7". */
 function cellLabel(cell: Cell, row: number, column: number): string {
-  const contents = cell.kind === 'empty' ? 'empty' : `${cell.kind} ${cell.digit}`;
+  const contents = (() => {
+    switch (cell.kind) {
+      case 'empty':
+        return 'empty';
+      case 'given':
+        return `given ${cell.digit}`;
+      case 'placed':
+        return `placed ${cell.digit}`;
+    }
+  })();
   return `Row ${row + 1}, column ${column + 1}, ${contents}`;
 }
 
