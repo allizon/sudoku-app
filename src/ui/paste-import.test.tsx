@@ -373,3 +373,54 @@ describe('Paste import: toasts share one live region', () => {
     expect(grid.contains(toastRegion())).toBe(false);
   });
 });
+
+describe('Paste import: the grid keeps focus, so a paste always lands', () => {
+  it('the grid has focus as soon as the app opens', () => {
+    const grid = renderApp();
+    expect(grid.contains(document.activeElement)).toBe(true);
+  });
+
+  it('opening the app and pasting straight away loads the Puzzle', () => {
+    const grid = renderApp();
+    paste(puzzle1);
+    expect(gridText(grid)).toBe(normalized(puzzle1));
+  });
+
+  it('pressing the mouse on a toast does not move focus off the grid', () => {
+    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
+    const [toast] = toastsOnScreen();
+    if (toast === undefined) throw new Error('expected a toast');
+    // jsdom does not move focus on mousedown, so check that the browser's
+    // focus change is cancelled.
+    expect(fireEvent.mouseDown(toast)).toBe(false);
+  });
+
+  it('after clicking a toast the grid still has focus, and a paste still lands', () => {
+    const grid = renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
+    const [toast] = toastsOnScreen();
+    if (toast === undefined) throw new Error('expected a toast');
+    fireEvent.mouseDown(toast);
+    fireEvent.click(toast);
+    expect(grid.contains(document.activeElement)).toBe(true);
+    paste(puzzle1);
+    expect(gridText(grid)).toBe(normalized(puzzle1));
+  });
+});
+
+describe('Paste import: Escape dismisses every toast', () => {
+  it('pressing Escape while the grid has focus dismisses all the toasts', () => {
+    const grid = renderAndPaste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79));
+    expect(toastsOnScreen()).toHaveLength(2);
+    fireEvent.keyDown(grid, { key: 'Escape' });
+    expect(toastsOnScreen()).toHaveLength(0);
+  });
+
+  it('pressing Escape leaves the grid as it was', () => {
+    const grid = renderAndPaste(puzzle1);
+    paste(puzzle2);
+    const before = grid.innerHTML;
+    fireEvent.keyDown(grid, { key: 'Escape' });
+    expect(grid.innerHTML).toBe(before);
+    expect(toastsOnScreen()).toHaveLength(0);
+  });
+});
