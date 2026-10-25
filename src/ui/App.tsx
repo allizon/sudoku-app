@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
+import { moveSelection, type Direction, type Position } from '../core/selection';
 import { Toasts, useToasts } from './Toasts';
 import './App.css';
 
@@ -16,9 +17,18 @@ function cellLabel(cell: Cell, row: number, column: number): string {
   return `Row ${row + 1}, column ${column + 1}, ${contents}`;
 }
 
+const ARROW_DIRECTIONS: Partial<Record<string, Direction>> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+};
+
 export function App() {
   const [puzzle, setPuzzle] = useState<Puzzle>(createEmptyPuzzle);
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
+  // Exactly one cell is always selected; a Puzzle opens at row 1, column 1 (keymap.md §4).
+  const [selected, setSelected] = useState<Position>({ row: 0, column: 0 });
   const gridRef = useRef<HTMLDivElement>(null);
   const empty = isEmptyPuzzle(puzzle);
   // Each focus starts a 1-second flash (import.md §2). focusCount tells one
@@ -57,6 +67,11 @@ export function App() {
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') dismissAllToasts();
+    const direction = ARROW_DIRECTIONS[event.key];
+    if (direction !== undefined) {
+      event.preventDefault();
+      setSelected((position) => moveSelection(position, direction));
+    }
   }
 
   // Pressing the mouse anywhere outside the grid would otherwise move focus
@@ -64,6 +79,12 @@ export function App() {
   function handleMouseDown(event: MouseEvent<HTMLElement>) {
     const grid = gridRef.current;
     if (grid !== null && event.target instanceof Node && !grid.contains(event.target)) event.preventDefault();
+  }
+
+  // Clicking a cell selects it and keeps keyboard focus on the grid (keymap.md §1).
+  function selectCell(row: number, column: number) {
+    setSelected({ row, column });
+    gridRef.current?.focus();
   }
 
   return (
@@ -91,6 +112,8 @@ export function App() {
                 role="gridcell"
                 data-box={boxOf(r, c) + 1}
                 aria-label={cellLabel(cell, r, c)}
+                aria-selected={r === selected.row && c === selected.column}
+                onClick={() => selectCell(r, c)}
                 aria-readonly={cell.kind === 'given' ? true : undefined}
                 key={c}
               >
