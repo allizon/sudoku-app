@@ -299,3 +299,23 @@ describe('parsePuzzle: naming a character that cannot be seen', () => {
     expect(parseErrorFor('😀' + SAMPLE_A_ZEROS.slice(1))).toBe("unexpected '😀' at row 1, column 1");
   });
 });
+
+describe('parsePuzzle: a bad character after the 81st cell', () => {
+  it("81 valid cells plus 'ab' report the count, then 'a' as after the 81st cell", () => {
+    expect(parseErrorsFor(SAMPLE_A_ZEROS + 'ab')).toEqual(['found 83 cells, expected 81', "unexpected 'a' after the 81st cell"]);
+  });
+
+  it('an invisible character after the 81st cell is named by code point', () => {
+    expect(parseErrorsFor(SAMPLE_A_ZEROS + '\u200B')).toEqual([
+      'found 82 cells, expected 81',
+      'unexpected U+200B (zero-width space) after the 81st cell',
+    ]);
+  });
+
+  it('a bad character in the 81st cell keeps the row and column wording', () => {
+    expect(parseErrorsFor(withCharAt(SAMPLE_A_ZEROS, 80, 'x') + '1')).toEqual([
+      'found 82 cells, expected 81',
+      "unexpected 'x' at row 9, column 9",
+    ]);
+  });
+});

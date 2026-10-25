@@ -4,10 +4,17 @@
 // Cmd+V on macOS and Ctrl+V elsewhere both reach the page as the browser's
 // `paste` event on the focused element, carrying the clipboard text; jsdom has
 // no clipboard or shortcut handling, so these tests fire that paste event.
+import { readFileSync } from 'node:fs';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import puzzle1 from '../../fixtures/puzzles/puzzle-1.txt?raw';
 import puzzle2 from '../../fixtures/puzzles/puzzle-2.txt?raw';
 import { App } from './App';
+
+/**
+ * App.css as written. Read from disk because Vitest empties imported CSS, even
+ * with ?raw; jsdom does no layout, so some rules can only be checked as text.
+ */
+const appCss = readFileSync(`${import.meta.dirname}/App.css`, 'utf8');
 
 /** import.md §6 Sample A, `0` for empty. */
 const SAMPLE_A_ZEROS = '020060080700001009000809000072000600100000007005000930000307000300500004010020060';
@@ -482,5 +489,59 @@ describe('Paste import: Givens are marked for styling and for screen readers', (
   it('once a Puzzle is loaded, the grid no longer asks for a paste', () => {
     expect(renderAndPaste(puzzle1)).toHaveAccessibleDescription('');
     expect(screen.queryByText('Paste a puzzle to start')).not.toBeInTheDocument();
+  });
+});
+
+describe('Paste import: refusals and parse errors look different', () => {
+  it('a parse error toast is of kind parse-error', () => {
+    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
+    expect(onlyToast()).toHaveAttribute('data-kind', 'parse-error');
+  });
+
+  it('the refusal toast is of kind refusal, unlike a parse error', () => {
+    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
+    const parseErrorKind = onlyToast().getAttribute('data-kind');
+    cleanup();
+    const grid = renderAndPaste(puzzle1);
+    focusGrid(grid);
+    paste(puzzle2);
+    const refusalKind = onlyToast().getAttribute('data-kind');
+    expect(refusalKind).toBe('refusal');
+    expect(refusalKind).not.toBe(parseErrorKind);
+  });
+
+  it('the refusal toast takes its background from its own token', () => {
+    expect(appCss).toMatch(/\.toast\[data-kind='refusal'\]\s*\{[^}]*background:\s*var\(--toast-refusal-background\)/);
+    expect(appCss).toMatch(/--toast-refusal-background:/);
+  });
+});
+
+describe('Paste import: the empty grid shows a hint', () => {
+  it('"Paste a puzzle to start" is shown on screen, not only to screen readers', () => {
+    renderApp();
+    expect(screen.getByText('Paste a puzzle to start')).not.toHaveClass('visually-hidden');
+  });
+
+  it('the hint sits below the grid, outside it', () => {
+    const grid = renderApp();
+    const hint = screen.getByText('Paste a puzzle to start');
+    expect(grid.contains(hint)).toBe(false);
+    expect(grid.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('the hint takes its color from a token', () => {
+    expect(appCss).toMatch(/\.hint\s*\{[^}]*color:\s*var\(--hint-text\)/);
+    renderApp();
+    expect(screen.getByText('Paste a puzzle to start')).toHaveClass('hint');
+  });
+});
+
+describe('Paste import: toasts move below the grid when there is no room beside it', () => {
+  // jsdom does no layout, so this checks the rule is in App.css; that it
+  // actually keeps the stack off the grid is checked only by reasoning.
+  it('below 988px wide, the toast stack is placed at the bottom of the window', () => {
+    const narrow = /@media \(width < 988px\)\s*\{([\s\S]*?)\n\}/.exec(appCss);
+    expect(narrow).not.toBeNull();
+    expect(narrow?.[1]).toMatch(/\.toasts\s*\{[^}]*top:\s*auto;[^}]*bottom:/);
   });
 });
