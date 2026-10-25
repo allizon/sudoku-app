@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
+import { fillDigit } from '../core/fill';
+import { digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { moveSelection, type Direction, type Position } from '../core/selection';
@@ -13,7 +15,7 @@ const FLASH_MS = 1_000;
 
 /** A cell's accessible name, e.g. "Row 1, column 1, given 7". */
 function cellLabel(cell: Cell, row: number, column: number): string {
-  const contents = cell.kind === 'given' ? `given ${cell.digit}` : 'empty';
+  const contents = cell.kind === 'empty' ? 'empty' : `${cell.kind} ${cell.digit}`;
   return `Row ${row + 1}, column ${column + 1}, ${contents}`;
 }
 
@@ -75,6 +77,15 @@ export function App() {
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') dismissAllToasts();
+    // Digits go by physical key, so Shift is fine; Cmd, Ctrl and Alt belong to
+    // the browser, and auto-repeat must not toggle (keymap.md §1).
+    const digit = digitFromCode(event.code);
+    if (digit !== undefined) {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+      event.preventDefault();
+      setPuzzle((current) => fillDigit(current, selected, digit));
+      return;
+    }
     // Modified arrows are left to the browser (and to later features).
     if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
     const direction = ARROW_DIRECTIONS[event.key];
@@ -119,7 +130,7 @@ export function App() {
             {row.map((cell, c) => (
               // data-box numbers the boxes 1–9 for people reading the markup.
               <div
-                className={cell.kind === 'given' ? 'cell given' : 'cell'}
+                className={cell.kind === 'empty' ? 'cell' : `cell ${cell.kind}`}
                 role="gridcell"
                 id={cellId(r, c)}
                 data-box={boxOf(r, c) + 1}
@@ -129,7 +140,7 @@ export function App() {
                 aria-readonly={cell.kind === 'given' ? true : undefined}
                 key={c}
               >
-                {cell.kind === 'given' ? cell.digit : null}
+                {cell.kind === 'empty' ? null : cell.digit}
               </div>
             ))}
           </div>

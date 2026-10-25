@@ -10,10 +10,13 @@ export const BOX_SIZE = 3;
 export type Digit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 /**
- * One cell of the Puzzle: empty, or a Given. Placed digits and Candidates
- * will be added as further shapes of this type.
+ * One cell of the Puzzle: empty, a Given, or a placed digit. Candidates
+ * will be added as a further shape of this type.
  */
-export type Cell = { readonly kind: 'empty' } | { readonly kind: 'given'; readonly digit: Digit };
+export type Cell =
+  | { readonly kind: 'empty' }
+  | { readonly kind: 'given'; readonly digit: Digit }
+  | { readonly kind: 'placed'; readonly digit: Digit };
 
 /** The Puzzle's grid as `cells[row][column]`, both 0-based. */
 export type Puzzle = { readonly cells: readonly (readonly Cell[])[] };
