@@ -29,12 +29,12 @@ export function App() {
   function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
     event.preventDefault();
     if (!empty) {
-      showToast(REFUSAL);
+      showToast('refusal', REFUSAL);
       return;
     }
     const result = parsePuzzle(event.clipboardData.getData('text/plain'));
     if (result.ok) setPuzzle(result.puzzle);
-    else for (const error of result.errors) showToast(error.message);
+    else for (const error of result.errors) showToast('parse-error', error.message);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -51,11 +51,6 @@ export function App() {
   return (
     <main className="app" onMouseDown={handleMouseDown}>
       <h1 className="visually-hidden">Sudoku</h1>
-      {empty && (
-        <p className="visually-hidden" id="grid-help">
-          Paste a puzzle to start
-        </p>
-      )}
       <div
         className="grid"
         role="grid"
@@ -84,6 +79,11 @@ export function App() {
           </div>
         ))}
       </div>
+      {empty && (
+        <p className="hint" id="grid-help">
+          Paste a puzzle to start
+        </p>
+      )}
       <Toasts toasts={toasts} onDismiss={dismissToast} />
     </main>
   );

@@ -58,6 +58,17 @@ function describeChar(char: string): string {
   return name === undefined ? code : `${code} (${name})`;
 }
 
+/**
+ * Where a cell is, from its 0-based index in the cleaned text: its row and
+ * column within the 81 cells, or past them.
+ */
+function describePosition(index: number): string {
+  if (index >= CELL_COUNT) return `after the ${CELL_COUNT}st cell`;
+  const row = Math.floor(index / GRID_SIZE) + 1;
+  const column = (index % GRID_SIZE) + 1;
+  return `at row ${row}, column ${column}`;
+}
+
 /** The cell a character stands for, or undefined when it stands for none. */
 function cellFor(char: string): Cell | undefined {
   if (EMPTY_CHARS.has(char)) return { kind: 'empty' };
@@ -86,9 +97,7 @@ export function parsePuzzle(text: string): ParseResult {
   for (const [index, char] of chars.entries()) {
     const cell = cellFor(char);
     if (cell === undefined) {
-      const row = Math.floor(index / GRID_SIZE) + 1;
-      const column = (index % GRID_SIZE) + 1;
-      errors.push({ message: `unexpected ${describeChar(char)} at row ${row}, column ${column}` });
+      errors.push({ message: `unexpected ${describeChar(char)} ${describePosition(index)}` });
       break;
     }
     cells.push(cell);

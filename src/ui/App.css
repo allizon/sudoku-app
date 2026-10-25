@@ -5,12 +5,15 @@
   --page-padding: 1rem;
   /* 6 thin lines + 2 inner box lines + 2 outer box lines across the grid. */
   --lines: 18px;
+  /* Room kept under the grid for the hint, and for toasts on narrow windows. */
+  --below-grid: 4rem;
   /*
    * Every cell's content size: the largest that fits the viewport (both ways)
-   * without scrolling, up to 58px. The toasts use it too, to stay beside the grid.
+   * without scrolling, leaving the room under the grid, up to 58px. The toasts
+   * use it too, to stay off the grid.
    */
   --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
-  --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines)) / 9);
+  --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines) - var(--below-grid)) / 9);
   --cell-size: min(58px, var(--fit-width), var(--fit-height));
   --grid-width: calc(9 * var(--cell-size) + var(--lines));
 
@@ -21,7 +24,12 @@
   --given-digit: #111;
   --focus-ring: #2563eb;
   --toast-text: #fff;
+  /* Parse errors: white on this is 6.6:1. */
   --toast-background: #b42318;
+  /* The refusal, a muted red: white on this is 6.1:1. */
+  --toast-refusal-background: #9b4a44;
+  /* On the page background, 6.7:1. */
+  --hint-text: #595959;
   --toast-shadow: rgb(0 0 0 / 25%);
 
   font-family: system-ui, sans-serif;
@@ -50,9 +58,9 @@ body {
   box-sizing: border-box;
   min-height: 100dvh;
   display: flex;
-  justify-content: center;
-  /* Keep the grid its own height rather than stretching it to the window. */
-  align-items: flex-start;
+  flex-direction: column;
+  /* Center the grid, at its own width rather than stretched to the window. */
+  align-items: center;
   padding: var(--page-padding);
 }
 
@@ -113,11 +121,18 @@ body {
   color: var(--given-digit);
 }
 
+/* The hint under the empty grid. */
+.hint {
+  margin: 0.75rem 0 0;
+  line-height: 1.5rem;
+  color: var(--hint-text);
+}
+
 /*
  * Parse errors and the refusal, stacked in the top-right corner (milestones.md
  * M0). The stack is as wide as the space right of the grid allows, between
- * 12rem and 24rem, so it covers the grid only on narrow windows; it never runs
- * off the bottom of the window, scrolling instead.
+ * 12rem and 24rem; it never runs off the bottom of the window, scrolling
+ * instead. Narrower windows move it below the grid (the rule after .toast).
  */
 .toasts {
   position: fixed;
@@ -139,4 +154,26 @@ body {
   background: var(--toast-background);
   box-shadow: 0 2px 8px var(--toast-shadow);
   cursor: pointer;
+}
+
+.toast[data-kind='refusal'] {
+  background: var(--toast-refusal-background);
+}
+
+/*
+ * Below 988px wide there is no 12rem of room right of the full-size grid:
+ * 988px = 540px of grid + 2 × (12rem of stack + 2rem of margin). The stack
+ * then sits centered at the bottom of the window, no taller than the space
+ * under the grid, so it never covers the grid.
+ */
+@media (width < 988px) {
+  .toasts {
+    top: auto;
+    bottom: 0.5rem;
+    left: 1rem;
+    right: 1rem;
+    align-items: center;
+    max-width: none;
+    max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
+  }
 }

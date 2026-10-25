@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /** How long a toast stays before dismissing itself. */
 const TOAST_MS = 10_000;
 
-type Toast = { readonly id: number; readonly message: string };
+/** What a toast reports, which sets how it looks. */
+export type ToastKind = 'parse-error' | 'refusal';
+
+type Toast = { readonly id: number; readonly kind: ToastKind; readonly message: string };
 
 /**
  * The toasts on screen, oldest first, with functions to show and dismiss
@@ -13,9 +16,9 @@ export function useToasts() {
   const [toasts, setToasts] = useState<readonly Toast[]>([]);
   const nextId = useRef(0);
 
-  const showToast = useCallback((message: string) => {
+  const showToast = useCallback((kind: ToastKind, message: string) => {
     const id = nextId.current++;
-    setToasts((current) => [...current, { id, message }]);
+    setToasts((current) => [...current, { id, kind, message }]);
   }, []);
 
   const dismissToast = useCallback((id: number) => {
@@ -60,7 +63,7 @@ type ToastItemProps = {
 
 /** One toast: gone after 10 seconds, or as soon as it is clicked. */
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
-  const { id, message } = toast;
+  const { id, kind, message } = toast;
 
   useEffect(() => {
     const timer = setTimeout(() => onDismiss(id), TOAST_MS);
@@ -68,7 +71,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [id, onDismiss]);
 
   return (
-    <div className="toast" onClick={() => onDismiss(id)}>
+    <div className="toast" data-kind={kind} onClick={() => onDismiss(id)}>
       {message}
     </div>
   );
