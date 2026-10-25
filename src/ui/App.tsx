@@ -7,6 +7,9 @@ import './App.css';
 /** Shown when a paste arrives while a Puzzle is loaded (milestones.md M0). */
 const REFUSAL = 'A puzzle is already loaded — reload the page to start a new one.';
 
+/** How long the grid's focus flash lasts, matching its animation in App.css. */
+const FLASH_MS = 1_000;
+
 /** A cell's accessible name, e.g. "Row 1, column 1, given 7". */
 function cellLabel(cell: Cell, row: number, column: number): string {
   const contents = cell.kind === 'given' ? `given ${cell.digit}` : 'empty';
@@ -18,6 +21,21 @@ export function App() {
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
   const gridRef = useRef<HTMLDivElement>(null);
   const empty = isEmptyPuzzle(puzzle);
+  // Each focus starts a 1-second flash (import.md §2). focusCount tells one
+  // focus from the next, so a focus mid-flash restarts the timer.
+  const [focusCount, setFocusCount] = useState(0);
+  const [flashing, setFlashing] = useState(false);
+
+  useEffect(() => {
+    if (!flashing) return;
+    const timer = setTimeout(() => setFlashing(false), FLASH_MS);
+    return () => clearTimeout(timer);
+  }, [flashing, focusCount]);
+
+  function handleFocus() {
+    setFocusCount((count) => count + 1);
+    setFlashing(true);
+  }
 
   // The grid has focus from the start, so a paste works without a click first.
   useEffect(() => {
@@ -58,6 +76,9 @@ export function App() {
         aria-describedby={empty ? 'grid-help' : undefined}
         tabIndex={0}
         ref={gridRef}
+        // Alternating a and b swaps the animation, so a focus mid-flash restarts it.
+        data-flash={flashing ? (focusCount % 2 === 0 ? 'a' : 'b') : undefined}
+        onFocus={handleFocus}
         onPaste={handlePaste}
         onKeyDown={handleKeyDown}
       >

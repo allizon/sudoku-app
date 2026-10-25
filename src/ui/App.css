@@ -22,7 +22,8 @@
   --page-background: #fafafa;
   --cell-background: #fff;
   --given-digit: #111;
-  --focus-ring: #2563eb;
+  /* The grid's background as it takes focus, fading back over 1s. */
+  --grid-focus-flash: #e8f1ff;
   --toast-text: #fff;
   /* Parse errors: white on this is 6.6:1. */
   --toast-background: #b42318;
@@ -71,10 +72,41 @@ body {
   background: var(--cell-background);
 }
 
-/* The grid takes focus so a paste can reach it (import.md §2). */
+/*
+ * The grid takes focus so a paste can reach it (import.md §2). It shows no
+ * focus ring; instead its background flashes pale blue and fades back over
+ * 1s. App.tsx alternates data-flash between a and b on each focus, so the
+ * animation swaps and the browser starts it over. The cells have no
+ * background of their own, so the flash shows behind every digit.
+ */
 .grid:focus {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: none;
+}
+
+.grid[data-flash='a'] {
+  animation: grid-focus-flash-a 1s ease-out;
+}
+
+.grid[data-flash='b'] {
+  animation: grid-focus-flash-b 1s ease-out;
+}
+
+@keyframes grid-focus-flash-a {
+  from {
+    background-color: var(--grid-focus-flash);
+  }
+  to {
+    background-color: var(--cell-background);
+  }
+}
+
+@keyframes grid-focus-flash-b {
+  from {
+    background-color: var(--grid-focus-flash);
+  }
+  to {
+    background-color: var(--cell-background);
+  }
 }
 
 .row {
