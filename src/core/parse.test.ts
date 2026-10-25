@@ -278,7 +278,10 @@ describe('parsePuzzle: naming a character that cannot be seen', () => {
     ['a control character (Cc)', '\u0007', 'U+0007'],
     ['a format character (Cf)', '\u2066', 'U+2066'],
     ['a combining mark (M)', '\u0301', 'U+0301'],
-    ['a separator that \\s does not match', '\u180E', 'U+180E'],
+    ['a format character that \\s does not match (U+180E, Mongolian vowel separator)', '\u180E', 'U+180E'],
+    ['a blank-looking letter (U+3164, Hangul filler)', '\u3164', 'U+3164'],
+    ['a blank-looking letter (U+115F, Hangul choseong filler)', '\u115F', 'U+115F'],
+    ['a blank Braille pattern (U+2800)', '\u2800', 'U+2800'],
     ['a format character outside the BMP', '\u{E0001}', 'U+E0001'],
   ])('names %s by its code point alone', (_kind, char, code) => {
     expect(parseErrorFor(withCharAt(SAMPLE_A_ZEROS, 0, char))).toBe(`unexpected ${code} at row 1, column 1`);

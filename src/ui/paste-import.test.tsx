@@ -141,6 +141,8 @@ describe('Paste import: pasting onto an empty grid loads the Puzzle', () => {
   it('a successful paste shows no toast', () => {
     renderAndPaste(puzzle1);
     expect(toastsOnScreen()).toHaveLength(0);
+    expect(toastRegion()).toBeEmptyDOMElement();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
   });
 
   it('pasting while the grid does not have focus loads nothing', () => {
@@ -368,6 +370,11 @@ describe('Paste import: toasts share one live region', () => {
     for (const toast of toastsOnScreen()) expect(toast).not.toHaveAttribute('role');
   });
 
+  it('the live region announces each new toast, not the whole stack again', () => {
+    renderApp();
+    expect(toastRegion()).toHaveAttribute('aria-atomic', 'false');
+  });
+
   it('the live region is outside the grid', () => {
     const grid = renderApp();
     expect(grid.contains(toastRegion())).toBe(false);
@@ -395,15 +402,35 @@ describe('Paste import: the grid keeps focus, so a paste always lands', () => {
     expect(fireEvent.mouseDown(toast)).toBe(false);
   });
 
-  it('after clicking a toast the grid still has focus, and a paste still lands', () => {
+  it('pressing and clicking a toast dismisses it, leaves the grid focused, and a later paste lands', () => {
     const grid = renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
     const [toast] = toastsOnScreen();
     if (toast === undefined) throw new Error('expected a toast');
     fireEvent.mouseDown(toast);
     fireEvent.click(toast);
+    expect(toast).not.toBeInTheDocument();
     expect(grid.contains(document.activeElement)).toBe(true);
     paste(puzzle1);
     expect(gridText(grid)).toBe(normalized(puzzle1));
+  });
+});
+
+describe('Paste import: pressing the mouse outside the grid keeps focus on it', () => {
+  it('pressing the mouse on the toast stack itself, between toasts, does not move focus', () => {
+    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79));
+    expect(fireEvent.mouseDown(toastRegion())).toBe(false);
+  });
+
+  it('pressing the mouse on the page background does not move focus', () => {
+    renderApp();
+    expect(fireEvent.mouseDown(screen.getByRole('main'))).toBe(false);
+  });
+
+  it('pressing the mouse on a cell is left to the browser, which focuses the grid', () => {
+    const grid = renderApp();
+    const [cell] = cellsOf(grid);
+    if (cell === undefined) throw new Error('expected a cell');
+    expect(fireEvent.mouseDown(cell)).toBe(true);
   });
 });
 
@@ -454,5 +481,6 @@ describe('Paste import: Givens are marked for styling and for screen readers', (
 
   it('once a Puzzle is loaded, the grid no longer asks for a paste', () => {
     expect(renderAndPaste(puzzle1)).toHaveAccessibleDescription('');
+    expect(screen.queryByText('Paste a puzzle to start')).not.toBeInTheDocument();
   });
 });
