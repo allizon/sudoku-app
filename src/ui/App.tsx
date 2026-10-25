@@ -24,6 +24,11 @@ const ARROW_DIRECTIONS: Partial<Record<string, Direction>> = {
   ArrowRight: 'right',
 };
 
+/** A cell's stable id, for the grid's aria-activedescendant. */
+function cellId(row: number, column: number): string {
+  return `cell-${row + 1}-${column + 1}`;
+}
+
 export function App() {
   const [puzzle, setPuzzle] = useState<Puzzle>(createEmptyPuzzle);
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
@@ -61,12 +66,17 @@ export function App() {
       return;
     }
     const result = parsePuzzle(event.clipboardData.getData('text/plain'));
-    if (result.ok) setPuzzle(result.puzzle);
-    else for (const error of result.errors) showToast('parse-error', error.message);
+    if (result.ok) {
+      setPuzzle(result.puzzle);
+      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4).
+      setSelected({ row: 0, column: 0 });
+    } else for (const error of result.errors) showToast('parse-error', error.message);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') dismissAllToasts();
+    // Modified arrows are left to the browser (and to later features).
+    if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
     const direction = ARROW_DIRECTIONS[event.key];
     if (direction !== undefined) {
       event.preventDefault();
@@ -95,6 +105,7 @@ export function App() {
         role="grid"
         aria-label="Sudoku grid"
         aria-describedby={empty ? 'grid-help' : undefined}
+        aria-activedescendant={cellId(selected.row, selected.column)}
         tabIndex={0}
         ref={gridRef}
         // Alternating a and b swaps the animation, so a focus mid-flash restarts it.
@@ -110,6 +121,7 @@ export function App() {
               <div
                 className={cell.kind === 'given' ? 'cell given' : 'cell'}
                 role="gridcell"
+                id={cellId(r, c)}
                 data-box={boxOf(r, c) + 1}
                 aria-label={cellLabel(cell, r, c)}
                 aria-selected={r === selected.row && c === selected.column}
