@@ -1,11 +1,11 @@
 ---
 id: TASK-4
 title: Paste a puzzle onto an empty grid (parsing only)
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: 2026-10-24 19:21
-updated_date: '2026-10-25T03:21:00Z'
+updated_date: '2026-10-25T03:26:00Z'
 labels:
   - afk
 milestone: m-0
@@ -34,22 +34,22 @@ Not in this task: the I import field (M1), validation (M1), saving the ◆PUZZLE
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Pasting (Cmd+V on macOS, Ctrl+V elsewhere) while the grid has focus and the grid is empty loads the pasted ◆PUZZLE
-- [ ] #2 The parser removes all whitespace (spaces, tabs, line breaks) and commas, expects exactly 81 characters, and reads them left to right, top to bottom
-- [ ] #3 1–9 are read as ◆GIVENs; ., 0, and - are read as empty cells
-- [ ] #4 An 81-character string, nine lines of nine, and comma- or space-separated variants all load the same ◆PUZZLE
-- [ ] #5 import.md §6 Sample A loads identically from both its 0-notation and its --notation forms
-- [ ] #6 ◆GIVENs are drawn on the grid and are visibly distinct from an empty cell
-- [ ] #7 Text with a character other than those above is rejected with a parse error naming the character and its position
-- [ ] #8 Text that leaves other than 81 cells is rejected with a parse error stating the count (e.g. "found 79 cells, expected 81")
-- [ ] #9 A rejected paste leaves the grid exactly as it was
-- [ ] #10 Pasting while a ◆PUZZLE is already loaded is refused and leaves the ◆PUZZLE exactly as it was
-- [ ] #11 Parse errors and the refusal appear as a toast in the top-right corner
-- [ ] #12 Parsing lives in src/core/ and is covered by unit tests; the paste handling and toast are covered by UI tests
-- [ ] #13 Two fixture ◆PUZZLEs are generated and available to both tests and UI acceptance checks, with their location noted in the handoff
-- [ ] #14 No focus ring or outline is drawn around the grid while it has focus, however focus arrived (page load, Tab, click)
-- [ ] #15 When the grid receives focus (on load, by Tab, by a click, or when the window regains focus), its background flashes a very pale blue and fades gradually back to normal over one second
-- [ ] #16 The flash color comes from a CSS token and does not obscure ◆GIVENs
+- [x] #1 Pasting (Cmd+V on macOS, Ctrl+V elsewhere) while the grid has focus and the grid is empty loads the pasted ◆PUZZLE
+- [x] #2 The parser removes all whitespace (spaces, tabs, line breaks) and commas, expects exactly 81 characters, and reads them left to right, top to bottom
+- [x] #3 1–9 are read as ◆GIVENs; ., 0, and - are read as empty cells
+- [x] #4 An 81-character string, nine lines of nine, and comma- or space-separated variants all load the same ◆PUZZLE
+- [x] #5 import.md §6 Sample A loads identically from both its 0-notation and its --notation forms
+- [x] #6 ◆GIVENs are drawn on the grid and are visibly distinct from an empty cell
+- [x] #7 Text with a character other than those above is rejected with a parse error naming the character and its position
+- [x] #8 Text that leaves other than 81 cells is rejected with a parse error stating the count (e.g. "found 79 cells, expected 81")
+- [x] #9 A rejected paste leaves the grid exactly as it was
+- [x] #10 Pasting while a ◆PUZZLE is already loaded is refused and leaves the ◆PUZZLE exactly as it was
+- [x] #11 Parse errors and the refusal appear as a toast in the top-right corner
+- [x] #12 Parsing lives in src/core/ and is covered by unit tests; the paste handling and toast are covered by UI tests
+- [x] #13 Two fixture ◆PUZZLEs are generated and available to both tests and UI acceptance checks, with their location noted in the handoff
+- [x] #14 No focus ring or outline is drawn around the grid while it has focus, however focus arrived (page load, Tab, click)
+- [x] #15 When the grid receives focus (on load, by Tab, by a click, or when the window regains focus), its background flashes a very pale blue and fades gradually back to normal over one second
+- [x] #16 The flash color comes from a CSS token and does not obscure ◆GIVENs
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -111,3 +111,11 @@ Review of the focus-flash change (code-reviewer, one round): no major findings.
 Each tightened test was confirmed to fail when its feature is broken.
 Note: clicking an already-focused grid fires no focus event, so it does not flash; matches 'whenever the grid receives focus'.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Paste import, parsing only (M0). Pasting onto the focused, empty grid loads a Puzzle parsed in src/core/parse.ts; parse errors and the already-loaded refusal show as toasts (10 s, click or Escape to dismiss, stacked top-right or below the grid on narrow windows). The grid takes focus on load, keeps it when the page or a toast is clicked, and flashes pale blue on focus instead of showing a ring. Fixtures: fixtures/puzzles/puzzle-{1,2}.txt with solutions, rebuilt by scripts/generate-puzzle.py --rows. Spec updated in import.md §2-3, milestones.md M0, keymap.md §8.
+Verification: 246 Vitest tests pass (core unit tests for parsing, jsdom UI tests for paste, toasts, focus, and CSS checks); typecheck and build pass; each commit verified red/green. Not exercised in a real browser by the agents: layout, colors, the flash animation, and window-refocus behavior.
+Follow-ups: task-10 needs dark-scheme values for the new color tokens (and could split line width from color in --thin-line/--box-line); a future text field outside the grid (M1 I field) needs an exception to the background mousedown handler.
+<!-- SECTION:FINAL_SUMMARY:END -->
