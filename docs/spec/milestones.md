@@ -15,6 +15,11 @@ The whole stack, end to end: a deployed board that is fully keyboard-driven, wit
 - **Paste import, parsing only:** [`import.md`](./import.md) §2 (paste on the grid) and §3 (formats, including parse errors). Any ◆PUZZLE that parses is loaded as-is — no validation.
   - Paste imports only onto an empty grid. Once a ◆PUZZLE is loaded, pasting is refused and the ◆PUZZLE is left exactly as it was; reloading the page gives an empty grid again. (Replacing a ◆PUZZLE is M1, [`import.md`](./import.md) §5.)
   - Parse errors, and the refusal above, appear as a toast in the top-right corner. (Interim; M1 may revisit.)
+    - The refusal reads "A puzzle is already loaded — reload the page to start a new one." It is shown alone, even when the pasted text also has parse errors. Its toast is a less-saturated red than a parse error's.
+    - A successful paste shows no toast.
+    - A ◆PUZZLE of 81 empty cells does not count as loaded.
+    - Each toast lasts 10 seconds, or until the player clicks anywhere on it. Escape dismisses every toast.
+    - Toasts stack, each with its own 10 seconds. When there's no room for them beside the grid, they sit at the bottom of the window, below the grid, so they never cover it.
 
 Not in M0: anything that checks the grid or remembers history.
 

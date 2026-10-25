@@ -11,6 +11,9 @@ Terms (◆GIVEN, ◆SOLUTION, ◆CONFLICT, …) are defined in [`CONTEXT.md`](..
 ## 2. Starting an import
 
 - Pasting (Cmd+V on macOS, Ctrl+V elsewhere) while the grid has focus imports the clipboard text.
+- The grid has focus when the app opens, so a paste works straight away. Clicking elsewhere on the page (the background, a toast) leaves focus on the grid.
+- No focus ring is drawn around the grid. Instead, whenever the grid receives focus, its background flashes a very pale blue and fades back to normal over one second.
+- While the grid is empty, a hint below it reads "Paste a puzzle to start". It disappears once a ◆PUZZLE is loaded.
 - `I` opens a visible import text field, for reviewing pasted text or typing a ◆PUZZLE by hand; submitting it imports its contents. The same field is reachable with the mouse.
 - Both routes go through the same parsing (§3) and validation (§4).
 - The replace-puzzle confirmation (§5) is keyboard-driven: Enter confirms, Escape cancels, and focus starts on cancel.
@@ -24,6 +27,24 @@ The player pastes one ◆PUZZLE as text. The parser:
 3. Reads `1`–`9` as ◆GIVENs, and `.`, `0`, and `-` as empty cells.
 
 Any other character is a parse error naming the character and its position. This one rule accepts an 81-character string, row-by-row text (nine lines of nine), and comma- or space-separated variants.
+
+Details:
+
+- "Whitespace" is every character JavaScript's `\s` matches, including non-breaking spaces, other Unicode spaces, and the byte order mark (U+FEFF).
+- Every character left after step 1 counts as a cell, including ones that aren't allowed.
+- Positions count only the characters left after step 1, nine to a row.
+
+Parse errors, in this order:
+
+| Problem                                   | Message                                                    |
+|-------------------------------------------|------------------------------------------------------------|
+| other than 81 cells                       | `found 79 cells, expected 81`                              |
+| a character that isn't allowed            | `unexpected 'x' at row 5, column 5`                        |
+| …that falls after the 81st cell           | `unexpected 'x' after the 81st cell`                       |
+| …that can't be seen (control, format, combining, or blank characters) | `unexpected U+200B (zero-width space) at row 5, column 5`, or the code alone (`U+2800`) when the character has no common name |
+
+- When both problems apply, both errors are shown, the count first.
+- Only the first character that isn't allowed is named.
 
 ### Not in this version
 

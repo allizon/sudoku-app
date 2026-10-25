@@ -104,6 +104,8 @@ In **center** or **corner** mode, or with a chord held:
 
 Letters with a meaning: `N`, `C`, `S`, `X`, `I` (opens import — see [`import.md`](./import.md) §2). New features must choose other letters.
 
+Escape, while the grid has focus, dismisses every toast ([`milestones.md`](./milestones.md) M0). While the replace-puzzle confirmation has focus, Escape cancels it instead ([`import.md`](./import.md) §2).
+
 ## 9. Not in this version
 
 - Selecting multiple cells at once (e.g. Shift+arrow). Deferred to a later milestone; it changes the behavior of every other key, so it will be specified as its own change.
