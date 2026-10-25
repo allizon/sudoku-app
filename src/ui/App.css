@@ -45,9 +45,14 @@ body {
   border: 0;
 }
 
+/* The app fills the window, so a press anywhere on the page reaches it. */
 .app {
+  box-sizing: border-box;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
+  /* Keep the grid its own height rather than stretching it to the window. */
+  align-items: flex-start;
   padding: var(--page-padding);
 }
 
@@ -126,7 +131,6 @@ body {
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
 }
-
 
 .toast {
   padding: 0.75rem 1rem;

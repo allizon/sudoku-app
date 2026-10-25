@@ -27,9 +27,11 @@ const DIGITS: Readonly<Record<string, Digit>> = {
 /**
  * Characters a player cannot see in the pasted text: control, format,
  * surrogate, private-use and unassigned characters (C), combining marks (M),
- * and any separator (Z) that whitespace removal left behind.
+ * default-ignorable characters (such as the Hangul fillers U+3164 and U+115F),
+ * and the blank Braille pattern U+2800. Z (separators) is a safeguard only:
+ * `\s` already removes every Z character before this is reached.
  */
-const INVISIBLE = /^[\p{C}\p{M}\p{Z}]$/u;
+const INVISIBLE = /^[\p{C}\p{M}\p{Z}\p{Default_Ignorable_Code_Point}\u2800]$/u;
 
 /**
  * Names for the invisible characters a paste most often carries. The byte

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { Toasts, useToasts } from './Toasts';
@@ -41,12 +41,21 @@ export function App() {
     if (event.key === 'Escape') dismissAllToasts();
   }
 
+  // Pressing the mouse anywhere outside the grid would otherwise move focus
+  // off it, and a paste would then do nothing (import.md §2).
+  function handleMouseDown(event: MouseEvent<HTMLElement>) {
+    const grid = gridRef.current;
+    if (grid !== null && event.target instanceof Node && !grid.contains(event.target)) event.preventDefault();
+  }
+
   return (
-    <main className="app">
+    <main className="app" onMouseDown={handleMouseDown}>
       <h1 className="visually-hidden">Sudoku</h1>
-      <p className="visually-hidden" id="grid-help">
-        Paste a puzzle to start
-      </p>
+      {empty && (
+        <p className="visually-hidden" id="grid-help">
+          Paste a puzzle to start
+        </p>
+      )}
       <div
         className="grid"
         role="grid"

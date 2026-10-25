@@ -34,11 +34,18 @@ type ToastsProps = {
 
 /**
  * The stack of toasts in the top-right corner. The stack is one live region,
- * always rendered, so screen readers announce each toast as it is added.
+ * always rendered, so screen readers announce each toast as it is added, and
+ * only that toast. Pressing anywhere on it (a toast, a gap, the scrollbar)
+ * cancels the browser's focus change, so the grid keeps focus.
  */
 export function Toasts({ toasts, onDismiss }: ToastsProps) {
   return (
-    <div className="toasts" role="alert">
+    <div
+      className="toasts"
+      role="alert"
+      aria-atomic="false"
+      onMouseDown={(event) => event.preventDefault()}
+    >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
@@ -51,10 +58,7 @@ type ToastItemProps = {
   readonly onDismiss: (id: number) => void;
 };
 
-/**
- * One toast: gone after 10 seconds, or as soon as it is clicked. Pressing on
- * it cancels the browser's focus change, so the grid keeps focus.
- */
+/** One toast: gone after 10 seconds, or as soon as it is clicked. */
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const { id, message } = toast;
 
@@ -64,7 +68,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [id, onDismiss]);
 
   return (
-    <div className="toast" onMouseDown={(event) => event.preventDefault()} onClick={() => onDismiss(id)}>
+    <div className="toast" onClick={() => onDismiss(id)}>
       {message}
     </div>
   );
