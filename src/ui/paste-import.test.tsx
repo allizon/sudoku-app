@@ -545,3 +545,110 @@ describe('Paste import: toasts move below the grid when there is no room beside 
     expect(narrow?.[1]).toMatch(/\.toasts\s*\{[^}]*top:\s*auto;[^}]*bottom:/);
   });
 });
+
+describe('Paste import: the grid flashes when it takes focus', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const wait = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+
+  it('the grid is flashing as soon as the app opens, since it takes focus then', () => {
+    expect(renderApp()).toHaveAttribute('data-flash');
+  });
+
+  it('focusing the grid again starts a flash', () => {
+    const grid = renderApp();
+    wait(1_000);
+    expect(grid).not.toHaveAttribute('data-flash');
+    act(() => grid.blur());
+    act(() => grid.focus());
+    expect(grid).toHaveAttribute('data-flash');
+  });
+
+  it('the flash ends after exactly 1 second', () => {
+    const grid = renderApp();
+    wait(999);
+    expect(grid).toHaveAttribute('data-flash');
+    wait(1);
+    expect(grid).not.toHaveAttribute('data-flash');
+  });
+
+  it('a focus during a flash restarts it, with a fresh second', () => {
+    const grid = renderApp();
+    const first = grid.getAttribute('data-flash');
+    wait(600);
+    // The window regaining focus refires focus on the grid.
+    fireEvent.focus(grid);
+    const second = grid.getAttribute('data-flash');
+    expect(second).not.toBeNull();
+    // A changed value swaps the animation, so the browser starts it over.
+    expect(second).not.toBe(first);
+    wait(999);
+    expect(grid).toHaveAttribute('data-flash');
+    wait(1);
+    expect(grid).not.toHaveAttribute('data-flash');
+  });
+
+  it('the flash leaves the Givens on screen', () => {
+    const grid = renderAndPaste('7' + '.'.repeat(80));
+    fireEvent.focus(grid);
+    expect(grid).toHaveAttribute('data-flash');
+    expect(cellsOf(grid)[0]).toHaveTextContent(/^7$/);
+    // The flash is the grid's background, so nothing above it may paint one.
+    for (const { selector, body } of cssRules()) {
+      if (/\.(row|cell|given)\b/.test(selector)) expect(body, selector).not.toMatch(/\bbackground(-color)?\s*:/);
+    }
+  });
+});
+
+/** App.css's innermost rules, comments removed: each selector and its declarations. */
+function cssRules(): { selector: string; body: string }[] {
+  const css = appCss.replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector = '', body = '']) => ({
+    selector: selector.trim(),
+    body,
+  }));
+}
+
+/** The from and to declarations of a @keyframes block in App.css. */
+function keyframesOf(name: string): { from: string; to: string } {
+  const css = appCss.replace(/\/\*[\s\S]*?\*\//g, '');
+  const block = new RegExp(`@keyframes ${name}\\s*\\{\\s*from\\s*\\{([^}]*)\\}\\s*to\\s*\\{([^}]*)\\}\\s*\\}`).exec(css);
+  return { from: block?.[1] ?? '', to: block?.[2] ?? '' };
+}
+
+describe('Paste import: the flash and the missing focus ring, as CSS', () => {
+  // jsdom runs no animations, so these check App.css as text.
+  it('the focused grid shows no outline', () => {
+    const rule = /\.grid:focus\s*\{([^}]*)\}/.exec(appCss);
+    expect(rule?.[1]).toMatch(/outline:\s*none/);
+    expect(appCss).not.toMatch(/\.grid:focus-visible/);
+    for (const { selector, body } of cssRules()) {
+      if (!/\.grid\b/.test(selector)) continue;
+      for (const [, value = ''] of body.matchAll(/\boutline\s*:\s*([^;]*)/g)) expect(value.trim(), selector).toBe('none');
+      expect(body, selector).not.toMatch(/\bbox-shadow\s*:/);
+    }
+  });
+
+  it('the flash fades from var(--grid-focus-flash) over 1s', () => {
+    expect(appCss).toMatch(/--grid-focus-flash:/);
+    const flashRules = appCss.match(/\.grid\[data-flash='[^']+'\]\s*\{[^}]*\}/g) ?? [];
+    expect(flashRules).toHaveLength(2);
+    for (const rule of flashRules) expect(rule).toMatch(/animation:\s*\S+\s+1s\b/);
+    for (const variant of ['a', 'b']) {
+      const rule = new RegExp(`\\.grid\\[data-flash='${variant}'\\]\\s*\\{([^}]*)\\}`).exec(appCss);
+      expect(rule?.[1]).toMatch(new RegExp(`animation:\\s*grid-focus-flash-${variant}\\s+1s\\b`));
+      const { from, to } = keyframesOf(`grid-focus-flash-${variant}`);
+      expect(from).toMatch(/var\(--grid-focus-flash\)/);
+      expect(to).toMatch(/var\(--cell-background\)/);
+    }
+    const keyframes = appCss.match(/@keyframes grid-focus-flash-\w+\s*\{[^@]*?\n\}/g) ?? [];
+    expect(keyframes).toHaveLength(2);
+    for (const block of keyframes) expect(block).toMatch(/from\s*\{[^}]*var\(--grid-focus-flash\)/);
+  });
+});
