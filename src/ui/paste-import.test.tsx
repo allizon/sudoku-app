@@ -424,3 +424,35 @@ describe('Paste import: Escape dismisses every toast', () => {
     expect(toastsOnScreen()).toHaveLength(0);
   });
 });
+
+describe('Paste import: Givens are marked for styling and for screen readers', () => {
+  it('a cell holding a Given has the class given, and an empty cell does not', () => {
+    const grid = renderAndPaste('7' + '.'.repeat(80));
+    const [givenCell, emptyCell] = cellsOf(grid);
+    expect(givenCell).toHaveClass('given');
+    expect(emptyCell).not.toHaveClass('given');
+  });
+
+  it('each cell is labeled with its row, column, and contents', () => {
+    const grid = renderAndPaste('7' + '.'.repeat(80));
+    const cells = cellsOf(grid);
+    expect(cells[0]).toHaveAccessibleName('Row 1, column 1, given 7');
+    expect(cells[1]).toHaveAccessibleName('Row 1, column 2, empty');
+    expect(cells[80]).toHaveAccessibleName('Row 9, column 9, empty');
+  });
+
+  it('a Given is read-only, and an empty cell is not', () => {
+    const grid = renderAndPaste('7' + '.'.repeat(80));
+    const [givenCell, emptyCell] = cellsOf(grid);
+    expect(givenCell).toHaveAttribute('aria-readonly', 'true');
+    expect(emptyCell).not.toHaveAttribute('aria-readonly');
+  });
+
+  it('the empty grid is described as "Paste a puzzle to start"', () => {
+    expect(renderApp()).toHaveAccessibleDescription('Paste a puzzle to start');
+  });
+
+  it('once a Puzzle is loaded, the grid no longer asks for a paste', () => {
+    expect(renderAndPaste(puzzle1)).toHaveAccessibleDescription('');
+  });
+});
