@@ -5,6 +5,14 @@
   --page-padding: 1rem;
   /* 6 thin lines + 2 inner box lines + 2 outer box lines across the grid. */
   --lines: 18px;
+  /*
+   * Every cell's content size: the largest that fits the viewport (both ways)
+   * without scrolling, up to 58px. The toasts use it too, to stay beside the grid.
+   */
+  --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
+  --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines)) / 9);
+  --cell-size: min(58px, var(--fit-width), var(--fit-height));
+  --grid-width: calc(9 * var(--cell-size) + var(--lines));
 
   /* Color tokens: every color the app uses (display.md §2). */
   --page-text: #222;
@@ -51,7 +59,7 @@ body {
 }
 
 /* The grid takes focus so a paste can reach it (import.md §2). */
-.grid:focus-visible {
+.grid:focus {
   outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
 }
@@ -62,13 +70,9 @@ body {
 
 /*
  * Every cell gets the same explicit content size, with borders drawn outside
- * it, so the cells next to box lines are as large as the rest. The size is the
- * largest that fits the viewport (both ways) without scrolling, up to 58px.
+ * it, so the cells next to box lines are as large as the rest.
  */
 .cell {
-  --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
-  --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines)) / 9);
-  --cell-size: min(58px, var(--fit-width), var(--fit-height));
   box-sizing: content-box;
   width: var(--cell-size);
   aspect-ratio: 1;
@@ -104,7 +108,12 @@ body {
   color: var(--given-digit);
 }
 
-/* Parse errors and the refusal, stacked in the top-right corner (milestones.md M0). */
+/*
+ * Parse errors and the refusal, stacked in the top-right corner (milestones.md
+ * M0). The stack is as wide as the space right of the grid allows, between
+ * 12rem and 24rem, so it covers the grid only on narrow windows; it never runs
+ * off the bottom of the window, scrolling instead.
+ */
 .toasts {
   position: fixed;
   top: 1rem;
@@ -113,8 +122,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: min(24rem, calc(100vw - 2rem));
+  max-width: min(clamp(12rem, calc((100vw - var(--grid-width)) / 2 - 2rem), 24rem), calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
+
 
 .toast {
   padding: 0.75rem 1rem;
