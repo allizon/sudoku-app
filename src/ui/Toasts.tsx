@@ -22,7 +22,9 @@ export function useToasts() {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
-  return { toasts, showToast, dismissToast };
+  const dismissAllToasts = useCallback(() => setToasts([]), []);
+
+  return { toasts, showToast, dismissToast, dismissAllToasts };
 }
 
 type ToastsProps = {
@@ -49,7 +51,10 @@ type ToastItemProps = {
   readonly onDismiss: (id: number) => void;
 };
 
-/** One toast: gone after 10 seconds, or as soon as it is clicked. */
+/**
+ * One toast: gone after 10 seconds, or as soon as it is clicked. Pressing on
+ * it cancels the browser's focus change, so the grid keeps focus.
+ */
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const { id, message } = toast;
 
@@ -59,7 +64,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [id, onDismiss]);
 
   return (
-    <div className="toast" onClick={() => onDismiss(id)}>
+    <div className="toast" onMouseDown={(event) => event.preventDefault()} onClick={() => onDismiss(id)}>
       {message}
     </div>
   );

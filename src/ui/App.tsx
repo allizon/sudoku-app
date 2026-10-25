@@ -1,4 +1,4 @@
-import { useState, type ClipboardEvent } from 'react';
+import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Puzzle } from '../core/puzzle';
 import { Toasts, useToasts } from './Toasts';
@@ -9,7 +9,13 @@ const REFUSAL = 'A puzzle is already loaded — reload the page to start a new o
 
 export function App() {
   const [puzzle, setPuzzle] = useState<Puzzle>(createEmptyPuzzle);
-  const { toasts, showToast, dismissToast } = useToasts();
+  const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // The grid has focus from the start, so a paste works without a click first.
+  useEffect(() => {
+    gridRef.current?.focus();
+  }, []);
 
   // Paste imports only onto an empty grid; a loaded Puzzle is never replaced
   // in M0, and a rejected paste leaves the grid as it was.
@@ -24,10 +30,22 @@ export function App() {
     else for (const error of result.errors) showToast(error.message);
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') dismissAllToasts();
+  }
+
   return (
     <main className="app">
       <h1 className="visually-hidden">Sudoku</h1>
-      <div className="grid" role="grid" aria-label="Sudoku grid" tabIndex={0} onPaste={handlePaste}>
+      <div
+        className="grid"
+        role="grid"
+        aria-label="Sudoku grid"
+        tabIndex={0}
+        ref={gridRef}
+        onPaste={handlePaste}
+        onKeyDown={handleKeyDown}
+      >
         {puzzle.cells.map((row, r) => (
           <div className="row" role="row" key={r}>
             {row.map((cell, c) => (
