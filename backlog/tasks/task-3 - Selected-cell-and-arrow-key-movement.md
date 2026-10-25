@@ -1,10 +1,10 @@
 ---
 id: TASK-3
 title: Selected cell and arrow-key movement
-status: To Do
+status: In Progress
 assignee: []
 created_date: 2026-10-24 19:21
-updated_date: '2026-10-24T21:42:00Z'
+updated_date: '2026-10-25T22:12:00Z'
 labels:
   - afk
 milestone: m-0
@@ -38,3 +38,23 @@ Use the terms in CONTEXT.md exactly (◆SELECTED CELL, ◆GIVEN, …).
 - [ ] #8 Letter keys with no meaning in M0 (every letter except N, C, S, X), including I, do nothing
 - [ ] #9 Movement logic lives in src/core/ and is covered by unit tests; the keyboard and click wiring is covered by UI tests
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review record — round 1 (code-reviewer + ux-reviewer), branch task-3/selected-cell-movement
+
+1. MAJOR — App.tsx handlePaste: accepted import did not reset the SELECTED CELL to row 1, column 1 (import.md §5, keymap §4); the existing paste test was vacuous. Fixed: setSelected({row:0,column:0}) on accepted import; new tests move the selection first, and a refused/unparseable paste leaves it alone (b09e3bc, aa42455).
+2. MAJOR — App.tsx: DOM focus stays on the grid with no aria-activedescendant, so screen readers never announce the SELECTED CELL. Fixed: cells have ids cell-<row>-<column>, grid sets aria-activedescendant; aria-selected kept (aa42455).
+3. MINOR — Shift/Alt/Ctrl/Cmd+Arrow moved the selection and swallowed browser shortcuts; keymap §9 defers Shift+arrow. Fixed: modified arrows do nothing and are not preventDefault'ed (aa42455).
+4. MINOR — box-shadow vanishes in forced-colors mode. Fixed: transparent outline on the selected cell (aa42455).
+5. MINOR — no user-select:none on cells. Fixed (aa42455).
+6. MINOR — CSS comment typo. Fixed (aa42455).
+7. MINOR — visibility test passes for a 0px shadow. Fixed in the new test file (nonzero inset spread assertion); approved test left as written.
+8. MINOR — fixed 6px ring+halo is large on small cells. Declined: not blocking; revisit when marks are drawn.
+9. MINOR — halo ~1.7:1 on white; ring merges with thick box border on edge cells. Declined: halo is decoration, ring alone carries 3:1+; no cheap improvement.
+10. NOTE — aria-selected on every cell / "does nothing" test only guards the future. Declined: informational.
+11. NOTE — no dark scheme block; "no cell background" rule will clash with future conflict/Mistake tints. Declined: out of scope, flagged for Alix.
+
+No open major findings after round 1; no spec contradictions found. Suite 306/306, typecheck clean.
+<!-- SECTION:NOTES:END -->
