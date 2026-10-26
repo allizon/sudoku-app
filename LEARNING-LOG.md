@@ -375,3 +375,9 @@ _The entries from here to "2026-10-25 — Moving to Claude Code" were written af
 - Work moved from the Claude desktop app to Claude Code, and the log stopped being updated: nothing past the milestones entry until this backfill.
 - Decided: the log is kept up to date as we work, not just at the end. The rule is now in `AGENTS.md` so any agent, in any tool, follows it, not just one Claude Code setup.
 - Claude's own calls, flagged for review: the main session writes the log (subagents report to it, as with Backlog.md); log updates are committed on the branch of the work they describe; glossary terms stay plain here, as in the earlier entries, rather than taking the ◆ marking.
+
+**Same day: when the log gets committed**
+- Alix: the log "should live in git, but can be updated/pushed once a day, not with every accepted commit or push."
+- Supersedes the earlier call to commit log updates on each task's branch. Now: entries stay uncommitted in the main checkout during the day; once a day they go straight to `main` as one `docs(log)` commit and are pushed, with no branch or approval. Written into `AGENTS.md` ("Learning log", plus a note on step 8).
+- Claude's own calls, flagged for review: the first session on a new day commits any leftover entries; cloud sessions, which can't leave changes uncommitted, commit theirs on their branch.
+- Observation (Claude): every log commit was going to trigger a production deploy, because pushing `main` deploys. Batching the log once a day keeps deploys for actual changes to the app.
