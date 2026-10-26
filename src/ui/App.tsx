@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
+import { loadColorScheme, saveColorScheme, type ColorScheme } from '../core/color-scheme';
 import { fillDigit } from '../core/fill';
 import { digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { moveSelection, type Direction, type Position } from '../core/selection';
+import type { Store } from '../core/store';
+import { createBrowserStore } from '../storage/browser-store';
 import { Toasts, useToasts } from './Toasts';
 import './App.css';
 
@@ -40,7 +43,15 @@ function cellId(row: number, column: number): string {
   return `cell-${row + 1}-${column + 1}`;
 }
 
-export function App() {
+type AppProps = {
+  /** Where saved state is kept; browser storage when not given. */
+  readonly store?: Store;
+};
+
+export function App({ store: givenStore }: AppProps) {
+  const [store] = useState<Store>(() => givenStore ?? createBrowserStore());
+  // The app starts light unless dark was chosen; the system setting is not used (display.md §2).
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => loadColorScheme(store));
   const [puzzle, setPuzzle] = useState<Puzzle>(createEmptyPuzzle);
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
   // Exactly one cell is always selected; a Puzzle opens at row 1, column 1 (keymap.md §4).
@@ -61,6 +72,18 @@ export function App() {
   function handleFocus() {
     setFocusCount((count) => count + 1);
     setFlashing(true);
+  }
+
+  // App.css keys each scheme's tokens on the root element. A layout effect
+  // applies it before the browser paints.
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute('data-color-scheme', colorScheme);
+  }, [colorScheme]);
+
+  function toggleColorScheme() {
+    const next = colorScheme === 'light' ? 'dark' : 'light';
+    setColorScheme(next);
+    saveColorScheme(store, next);
   }
 
   // The grid has focus from the start, so a paste works without a click first.
@@ -161,6 +184,20 @@ export function App() {
         </p>
       )}
       <Toasts toasts={toasts} onDismiss={dismissToast} />
+      {/*
+       * Mouse-only: out of the Tab order, and the mousedown handler above
+       * keeps focus on the grid when it is clicked (display.md §2).
+       */}
+      <button
+        type="button"
+        className="color-scheme-toggle"
+        tabIndex={-1}
+        aria-label="Dark color scheme"
+        aria-pressed={colorScheme === 'dark'}
+        onClick={toggleColorScheme}
+      >
+        Dark
+      </button>
     </main>
   );
 }

@@ -1,26 +1,35 @@
 :root {
-  /* Thin lines at about 3.4:1 against the white cells. */
-  --thin-line: 1px solid #8a8a8a;
-  --box-line: 3px solid #222;
+  /* Sizes (the same in every color scheme). */
+  --thin-line-width: 1px;
+  --box-line-width: 3px;
   --page-padding: 1rem;
   /* 6 thin lines + 2 inner box lines + 2 outer box lines across the grid. */
-  --lines: 18px;
+  --lines: calc(6 * var(--thin-line-width) + 4 * var(--box-line-width));
+  /* The grid is as large as the window allows, up to this wide (display.md §1). */
+  --grid-max-width: 1000px;
   /* Room kept under the grid for the hint, and for toasts on narrow windows. */
   --below-grid: 4rem;
   /*
    * Every cell's content size: the largest that fits the viewport (both ways)
-   * without scrolling, leaving the room under the grid, up to 58px. The toasts
-   * use it too, to stay off the grid.
+   * without scrolling, leaving the room under the grid, and keeping the grid
+   * within its maximum width. The toasts use it too, to stay off the grid.
    */
+  --max-cell: calc((var(--grid-max-width) - var(--lines)) / 9);
   --fit-width: calc((100vw - 2 * var(--page-padding) - var(--lines)) / 9);
   --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines) - var(--below-grid)) / 9);
-  --cell-size: min(58px, var(--fit-width), var(--fit-height));
+  --cell-size: min(var(--max-cell), var(--fit-width), var(--fit-height));
   --grid-width: calc(9 * var(--cell-size) + var(--lines));
 
-  /* Color tokens: every color the app uses (display.md §2). */
+  /*
+   * Color tokens, light color scheme: every color the app uses (display.md §2).
+   * Each holds only a color. The dark color scheme below sets the same tokens.
+   */
   --page-text: #222;
   --page-background: #fafafa;
   --cell-background: #fff;
+  /* Thin lines, about 3.4:1 against the cells. */
+  --grid-line: #8a8a8a;
+  --box-line: #222;
   --given-digit: #111;
   /* A placed digit: lighter and bluer than a Given. */
   --placed-digit: #2b5fb4;
@@ -37,10 +46,44 @@
   /* On the page background, 6.7:1. */
   --hint-text: #595959;
   --toast-shadow: rgb(0 0 0 / 25%);
+  --toggle-text: #222;
+  --toggle-background: #fff;
+  --toggle-border: #8a8a8a;
 
   font-family: system-ui, sans-serif;
   color: var(--page-text);
   background: var(--page-background);
+}
+
+/*
+ * The dark color scheme: the same color tokens, cool dark grays with soft
+ * light digits. Contrast against the cells (#1d2027) or the page (#15171c)
+ * is noted where it is close to the minimum.
+ */
+:root[data-color-scheme='dark'] {
+  --page-text: #e1e4e9;
+  --page-background: #15171c;
+  --cell-background: #1d2027;
+  /* About 3.4:1 against the cells. */
+  --grid-line: #6b7280;
+  --box-line: #b8bec9;
+  --given-digit: #e8eaee;
+  /* 6.7:1 against the cells. */
+  --placed-digit: #7aa7f5;
+  --grid-focus-flash: #253650;
+  --selected-ring: #6fa2f7;
+  --selected-halo: #34507e;
+  --toast-text: #fff;
+  /* White on this is 6.5:1. */
+  --toast-background: #b3261e;
+  /* White on this is 6.6:1. */
+  --toast-refusal-background: #8c4a45;
+  /* 6.9:1 against the page. */
+  --hint-text: #9aa1ad;
+  --toast-shadow: rgb(0 0 0 / 50%);
+  --toggle-text: #e1e4e9;
+  --toggle-background: #23262e;
+  --toggle-border: #6b7280;
 }
 
 body {
@@ -73,7 +116,7 @@ body {
 .grid {
   display: flex;
   flex-direction: column;
-  border: var(--box-line);
+  border: var(--box-line-width) solid var(--box-line);
   background: var(--cell-background);
 }
 
@@ -129,8 +172,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: var(--thin-line);
-  border-bottom: var(--thin-line);
+  border-right: var(--thin-line-width) solid var(--grid-line);
+  border-bottom: var(--thin-line-width) solid var(--grid-line);
   /* A double-click or drag must not paint text selection over the ring. */
   user-select: none;
 }
@@ -145,11 +188,11 @@ body {
 
 /* Thicker lines between the 3×3 boxes. */
 .cell:nth-child(3n):not(:last-child) {
-  border-right: var(--box-line);
+  border-right: var(--box-line-width) solid var(--box-line);
 }
 
 .row:nth-child(3n):not(:last-child) .cell {
-  border-bottom: var(--box-line);
+  border-bottom: var(--box-line-width) solid var(--box-line);
 }
 
 /* A Given: its digit, large and bold, centered in the cell. */
@@ -218,12 +261,13 @@ body {
 }
 
 /*
- * Below 988px wide there is no 12rem of room right of the full-size grid:
- * 988px = 540px of grid + 2 × (12rem of stack + 2rem of margin). The stack
- * then sits centered at the bottom of the window, no taller than the space
- * under the grid, so it never covers the grid.
+ * Below 1448px wide there may be no 12rem of room right of the grid at its
+ * largest: 1448px = 1000px of grid + 2 × (12rem of stack + 2rem of margin).
+ * The stack then sits centered at the bottom of the window, no taller than
+ * the space under the grid, so it never covers the grid. --grid-width follows
+ * the window, so both placements keep clear of the grid at any grid size.
  */
-@media (width < 988px) {
+@media (width < 1448px) {
   .toasts {
     top: auto;
     bottom: 0.5rem;
@@ -233,4 +277,28 @@ body {
     max-width: none;
     max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
   }
+}
+
+/*
+ * The color scheme toggle (display.md §2), in the bottom-left corner. It is
+ * fixed, so it takes no room from the grid, and it sits in the room kept
+ * under the grid (--below-grid), left of the centered hint.
+ */
+.color-scheme-toggle {
+  position: fixed;
+  bottom: 0.75rem;
+  left: 1rem;
+  padding: 0.25rem 0.75rem;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--toggle-text);
+  background: var(--toggle-background);
+  border: var(--thin-line-width) solid var(--toggle-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.color-scheme-toggle[aria-pressed='true'] {
+  border-color: var(--selected-ring);
 }
