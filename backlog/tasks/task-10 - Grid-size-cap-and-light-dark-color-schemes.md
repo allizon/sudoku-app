@@ -1,11 +1,11 @@
 ---
 id: TASK-10
 title: Grid size cap and light/dark color schemes
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-24T20:20:00Z'
-updated_date: '2026-10-26T02:04:00Z'
+updated_date: '2026-10-26T02:06:00Z'
 labels:
   - afk
 milestone: m-0
@@ -28,14 +28,14 @@ Preparation for skins (later; display.md §3): every color on the site is config
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The grid grows with the window up to 1000px wide
-- [ ] #2 The whole grid fits in the window without scrolling, at small and large window sizes
-- [ ] #3 The app starts in the light color scheme, whatever the system light/dark setting
-- [ ] #4 A mouse-only toggle switches between the light and dark color schemes; no key is mapped to it
-- [ ] #5 The chosen color scheme is remembered across reloads, saved through the storage interface in src/core/
-- [ ] #6 Grid lines and box lines meet at least 3:1 contrast in both schemes
-- [ ] #7 Every color the app draws comes from a CSS token (custom property); App.css has no color literals outside the token definitions
-- [ ] #8 The light and dark color schemes are each defined purely as token values, so a set of token values is all a future skin needs to supply
+- [x] #1 The grid grows with the window up to 1000px wide
+- [x] #2 The whole grid fits in the window without scrolling, at small and large window sizes
+- [x] #3 The app starts in the light color scheme, whatever the system light/dark setting
+- [x] #4 A mouse-only toggle switches between the light and dark color schemes; no key is mapped to it
+- [x] #5 The chosen color scheme is remembered across reloads, saved through the storage interface in src/core/
+- [x] #6 Grid lines and box lines meet at least 3:1 contrast in both schemes
+- [x] #7 Every color the app draws comes from a CSS token (custom property); App.css has no color literals outside the token definitions
+- [x] #8 The light and dark color schemes are each defined purely as token values, so a set of token values is all a future skin needs to supply
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -62,3 +62,9 @@ Preparation for skins (later; display.md §3): every color on the site is config
 - S6 minor — Overlong doc comment in Toasts.tsx. **Fixed**.
 - S7 (Alix approved) — Removed the obsolete pinned @media (width < 1448px) test and CSS block; placement now only via data-placement, starting 'below' before measuring.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Grid grows with the window up to 1000px and fits without scrolling. Light and dark color schemes as CSS token sets; app starts light; mouse-only ○/● Dark toggle (out of Tab order, returns focus to the grid); choice saved through the new Store interface (src/core/store.ts, browser implementation in src/storage/). Inline read-only script in index.html applies the saved scheme before first paint (exception recorded in AGENTS.md and display.md §2). Lines ≥3:1 and text ≥4.5:1 in both schemes. Toasts placed beside the grid by measured room, else centered below it. 606 tests pass, typecheck and build clean. Layout and contrast verified by CSS-model tests, not in a real browser; Alix's manual checks listed in the handoff (production reload flash, toggle glyphs, toast placement while resizing, dark lines, forced-colors).
+<!-- SECTION:FINAL_SUMMARY:END -->
