@@ -78,6 +78,35 @@ describe('Toast placement: App measures the room beside the grid', () => {
     expect(stack()).toHaveAttribute('data-placement', 'below');
   });
 
+  it('the grid changing size without a window resize (a new root font size) measures again', () => {
+    type Observed = { callback: ResizeObserverCallback; observer: ResizeObserver; target?: Element };
+    const observed: Observed[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class implements ResizeObserver {
+        private readonly entry: Observed;
+        constructor(callback: ResizeObserverCallback) {
+          this.entry = { callback, observer: this };
+          observed.push(this.entry);
+        }
+        observe(target: Element) {
+          this.entry.target = target;
+        }
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    measureAs(1440, 804);
+    const { grid } = renderApp();
+    expect(stack()).toHaveAttribute('data-placement', 'beside');
+    expect(observed.map((o) => o.target)).toContain(grid);
+    measureAs(1440, 1000);
+    act(() => {
+      for (const { callback, observer } of observed) callback([], observer);
+    });
+    expect(stack()).toHaveAttribute('data-placement', 'below');
+  });
+
   it('resizing the window measures again', () => {
     measureAs(1440, 804);
     renderApp();

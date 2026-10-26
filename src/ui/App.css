@@ -51,7 +51,13 @@
   --toggle-border: #8a8a8a;
 
   /* The color scheme toggle's width, so the toast stack can keep clear of it. */
-  --toggle-width: 5rem;
+  --toggle-width: 4rem;
+  /*
+   * Below the grid, the toast stack keeps this far from each side of the
+   * window: clear of the toggle on the left, and the same on the right so
+   * the stack stays centered under the grid.
+   */
+  --below-stack-inset: calc(1rem + var(--toggle-width) + 0.5rem);
 
   /* App sets color-scheme on the root element to match the chosen scheme. */
   color-scheme: light;
@@ -71,7 +77,8 @@
   --cell-background: #1d2027;
   /* 4.2:1 against the cells, and 3.1:1 against the focus flash. */
   --grid-line: #7a8190;
-  --box-line: #b8bec9;
+  /* 2.3:1 against the thin lines, so boxes stand out by tone as well as width. */
+  --box-line: #c4c9d2;
   --given-digit: #e8eaee;
   /* 6.7:1 against the cells. */
   --placed-digit: #7aa7f5;
@@ -236,9 +243,9 @@ body {
 
 /*
  * Parse errors and the refusal, stacked (milestones.md M0). App measures the
- * room beside the grid and sets data-placement (toast-placement.ts): "beside"
- * puts the stack in the top-right corner, "below" at the bottom of the
- * window, under the grid, so it never covers the grid.
+ * room beside the grid and sets data-placement (toast-placement.ts), starting
+ * at "below", which never covers the grid. Only the two placement rules set
+ * where the stack goes.
  */
 .toasts {
   position: fixed;
@@ -250,11 +257,11 @@ body {
 }
 
 /*
- * Beside the grid: as wide as the space right of the grid allows, between
- * 12rem and 24rem (toast-placement.ts needs the same 12rem + 2rem), never
- * running off the bottom of the window, scrolling instead.
+ * Beside the grid, in the top-right corner: as wide as the space right of
+ * the grid allows, between 12rem and 24rem, and 1rem clear of the grid
+ * (toast-placement.ts's ROOM_BESIDE_REM is 12rem + 2rem); never running off
+ * the bottom of the window, scrolling instead.
  */
-.toasts,
 .toasts[data-placement='beside'] {
   top: 1rem;
   bottom: auto;
@@ -266,32 +273,16 @@ body {
 }
 
 /*
- * Until App has measured, a window narrower than 1448px may have no room
- * beside the grid at its largest (1000px of grid + 2 × (12rem of stack +
- * 2rem of margin)), so the stack starts below the grid there.
- */
-@media (width < 1448px) {
-  .toasts {
-    top: auto;
-    bottom: 0.5rem;
-    left: calc(1rem + var(--toggle-width) + 0.5rem);
-    right: 1rem;
-    align-items: center;
-    max-width: none;
-    max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
-  }
-}
-
-/*
- * Below the grid: at the bottom of the window, right of the color scheme
- * toggle so it never hides it, and no taller than the space under the grid
- * (--grid-width follows the window), so it never covers the grid.
+ * Below the grid: at the bottom of the window, centered under the grid and
+ * clear of the color scheme toggle, and no taller than the space under the
+ * grid (--grid-width follows the window), so it never covers the grid. On
+ * short windows a toast may cover the hint while it lasts.
  */
 .toasts[data-placement='below'] {
   top: auto;
   bottom: 0.5rem;
-  left: calc(1rem + var(--toggle-width) + 0.5rem);
-  right: 1rem;
+  left: var(--below-stack-inset);
+  right: var(--below-stack-inset);
   align-items: center;
   max-width: none;
   max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
@@ -322,7 +313,7 @@ body {
   left: 1rem;
   box-sizing: border-box;
   width: var(--toggle-width);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.375rem;
   font: inherit;
   font-size: 0.875rem;
   line-height: 1.25rem;

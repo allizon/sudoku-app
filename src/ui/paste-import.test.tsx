@@ -536,16 +536,6 @@ describe('Paste import: the empty grid shows a hint', () => {
   });
 });
 
-describe('Paste import: toasts move below the grid when there is no room beside it', () => {
-  // jsdom does no layout, so this checks the rule is in App.css; that it
-  // actually keeps the stack off the grid is checked only by reasoning.
-  it('below 1448px wide, the toast stack is placed at the bottom of the window', () => {
-    const narrow = /@media \(width < 1448px\)\s*\{([\s\S]*?)\n\}/.exec(appCss);
-    expect(narrow).not.toBeNull();
-    expect(narrow?.[1]).toMatch(/\.toasts\s*\{[^}]*top:\s*auto;[^}]*bottom:/);
-  });
-});
-
 describe('Paste import: the grid flashes when it takes focus', () => {
   beforeEach(() => {
     vi.useFakeTimers();
