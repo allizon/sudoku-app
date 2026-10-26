@@ -53,7 +53,7 @@ Each step ends at its **checkpoint**; move to the next step only once it is met.
    - the diff command: `git diff main...<branch>`
 
    Checkpoint: Alix approves the merge.
-8. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Pushing `main` deploys to production (Vercel), so push `main` only after Alix's approval in step 7. Checkpoint: `main` contains the branch's commits and the branch is gone.
+8. **Merge.** `git merge --ff-only <branch>` into `main`, push `main`, delete the branch. Pushing `main` deploys to production (Vercel), so push `main` only after Alix's approval in step 7. (The one exception is the daily learning-log commit; see "Learning log".) Checkpoint: `main` contains the branch's commits and the branch is gone.
 
 ## Review record
 
@@ -69,7 +69,10 @@ One entry per review round. For each finding: severity (major/minor), what and w
 - Follow the format already in the file: dated sections, newest last, short bullets under bold labels, and a **Lesson:** where one shows up.
 - Say who said what: "Alix: …" (quoting Alix's words where useful), "Observation (Claude): …", "Claude's own call, flagged for review: …".
 - Glossary terms stay plain in the log.
-- Commit log updates on the branch of the work they describe.
+- The log lives in git but is committed once a day, not with each task:
+  - During the day, write entries in the main checkout and leave them uncommitted. Never commit the log on a task branch. When a step needs a clean working tree (e.g. the rebase in step 6), stash the log first or use `git rebase --autostash`.
+  - Once a day, commit the log straight to `main` as `docs(log): entries for <date>` and push. The first session on a new day does this for any entries left from earlier days, and Alix may ask for it at any time. It changes no app code, so it needs no branch, review, or approval, though the push still deploys.
+  - A cloud session can't leave changes uncommitted, so it commits its entries on its own branch and says so in the handoff.
 
 ## Commit messages
 
