@@ -19,7 +19,7 @@ The whole stack, end to end: a deployed board that is fully keyboard-driven, wit
     - A successful paste shows no toast.
     - A ◆PUZZLE of 81 empty cells does not count as loaded.
     - Each toast lasts 10 seconds, or until the player clicks anywhere on it. Escape dismisses every toast.
-    - Toasts stack, each with its own 10 seconds. When there's no room for them beside the grid, they sit at the bottom of the window, below the grid, so they never cover it.
+    - Toasts stack, each with its own 10 seconds. When there's no room for them beside the grid, they sit at the bottom of the window, below the grid, so they never cover it. There they may cover what sits under the grid (the "Paste a puzzle to start" hint, the ◆ENTRY MODE LINE) while they show; they stay clear of the color scheme toggle.
 
 Not in M0: anything that checks the grid or remembers history.
 
