@@ -17,6 +17,7 @@ Terms (◆GIVEN, ◆CANDIDATE, ◆CENTER MARK, ◆CORNER MARK, …) are defined 
 - The toggle is mouse-only, with no key. It is also left out of the Tab order, so no key reaches it. This is a setting, not part of solving, so it is an exception to "fully playable from the keyboard" ([`keymap.md`](./keymap.md) §1).
 - In both schemes, grid lines and box lines meet at least 3:1 contrast against the background, and text (◆GIVENs, ◆PLACED DIGITs, the hint line, toasts) meets at least 4.5:1.
 - The chosen scheme is remembered across reloads, saved through the storage interface ([`AGENTS.md`](../../AGENTS.md) "Stack and architecture").
+- On a reload, the page is drawn in the chosen scheme from the start, with no flash of the other scheme. To do that, a script in the page reads the saved scheme before the app loads, outside the storage interface. This exception is allowed because the color scheme is closer to a browser setting than to game state: it isn't part of the ◆PUZZLE or solving (AGENTS.md records the exception).
 
 ## 3. Not in this version
 

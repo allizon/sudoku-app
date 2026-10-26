@@ -12,7 +12,8 @@ A personal, keyboard-first sudoku web app, built spec-first: Alix writes the spe
 
 - TypeScript, React, Vite, Vitest. Test-driven.
 - ◆PUZZLE logic lives in `src/core/` as plain TypeScript with imports only from `src/core/` itself and the standard library — no React, no DOM. A future Angular UI will reuse it unchanged. A test enforces this boundary; the first task that creates `src/core/` also creates that test.
-- All saved state (the ◆PUZZLE in progress, its undo history, imported ◆PUZZLEs) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface's shape is not yet specified.
+- All saved state (the ◆PUZZLE in progress, its undo history, imported ◆PUZZLEs) is read and written through a single storage interface in `src/core/`. Browser storage is one implementation of it, so a synced store could replace it later by swapping one module. The interface is `Store` in `src/core/store.ts`.
+  - **One exception:** a small script in `index.html` reads the saved color scheme straight from browser storage, so the page is drawn in the right scheme before the app's code runs (otherwise a dark-scheme player sees a light flash on every reload). The color scheme is allowed this because it is closer to a browser setting than to game state: it isn't part of the ◆PUZZLE or solving, and nothing else depends on it. The script only reads; saving still goes through `Store`. The script must use the same key and format as the browser store, so changing either means changing both. Nothing else may read or write saved state outside `Store`.
 - Every color in the UI comes from a CSS token (custom property), never a color literal where it is used, so a future skin can restyle the app by supplying its own token values (`docs/spec/display.md` §2).
 
 ## Agents
