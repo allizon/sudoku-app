@@ -62,6 +62,15 @@ One entry per review round. For each finding: severity (major/minor), what and w
 - **Default:** the main session adds each round to the task's Backlog.md ticket through the `backlog` CLI (`backlog task edit --help` lists the options for notes).
 - **When the `backlog` CLI is unavailable** (e.g. a cloud session): write the record to `docs/reviews/<branch>.md` (with `/` in the branch name replaced by `-`), commit it on the branch, and say so in the handoff so a later session with the CLI can copy it into the ticket.
 
+## Learning log
+
+`LEARNING-LOG.md` records how the project is planned and built, so Alix can learn from the process, not just ship the app. The main session adds to it while the work happens, not only at the end: whenever something is decided, a question is answered, a checkpoint catches a problem, or an agent's output goes wrong (trace that back to the spec or the task). Subagents don't write to it; they report what they noticed to the main session.
+
+- Follow the format already in the file: dated sections, newest last, short bullets under bold labels, and a **Lesson:** where one shows up.
+- Say who said what: "Alix: …" (quoting Alix's words where useful), "Observation (Claude): …", "Claude's own call, flagged for review: …".
+- Glossary terms stay plain in the log.
+- Commit log updates on the branch of the work they describe.
+
 ## Commit messages
 
 Conventional commits. Scope is the spec area; end the subject with the spec section it implements, e.g. `feat(keymap): mode-aware clearing (§5)`. A `test:` commit is expected to fail on `main` until the next commit lands.
