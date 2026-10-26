@@ -1,10 +1,11 @@
 ---
 id: TASK-10
 title: Grid size cap and light/dark color schemes
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-24T20:20:00Z'
-updated_date: '2026-10-24T21:42:00Z'
+updated_date: '2026-10-26T01:34:00Z'
 labels:
   - afk
 milestone: m-0
