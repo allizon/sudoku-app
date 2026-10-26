@@ -288,3 +288,90 @@ Each entry: what we did, what was decided, and what we learned about specs/break
 **Deploy target**
 - Decided: **Vercel**, via its GitHub integration — every push to `main` auto-deploys. Alix: that auto-deploy isn't available with their own hosting provider.
 - Consequence: Alix's merge approval is now also the release decision. Added to `AGENTS.md` step 8 so agents know pushing `main` ships.
+
+---
+
+_The entries from here to "2026-10-25 — Moving to Claude Code" were written afterwards from the written records: Backlog.md tickets (descriptions, review records, final summaries), commit messages, and spec diffs. Things said only in conversation and never written down aren't here. Quotes from Alix are only included where a record quotes them._
+
+## 2026-10-24 — From milestones to tickets
+
+- Milestones M0–M2 entered into Backlog.md (`d873ef4`); M0 split into task-1 to task-8 (`9f99822`), later joined by task-9 (Vercel setup, Alix's own), task-10 (grid size and color schemes) and task-11 (focus flash).
+- Tickets labelled `afk` (an agent can do it alone) or `hitl` (needs Alix, e.g. connecting Vercel in its dashboard).
+- Each ticket names its dependencies, so Backlog.md shows the order: task-1 first, then deploy, selection, and paste in parallel, then fill mode, then modes, chords, and clearing.
+
+**Glossary and spec changes made while writing the tickets**
+- "Puzzle" replaces "game" everywhere; new terms: Placed digit, Selected cell, Entry mode (`57feae2`), later Sticky mode and Entry mode line (`6cc6281`).
+- Keymap §1: the mouse is allowed but never required; clicking a cell selects it (`9f99822`).
+- Keymap §5: Delete never removes hidden Candidates; only `X` does (`9442219`).
+- M0 paste rules: paste only onto an empty grid; errors and the refusal appear as a top-right toast, as an interim choice.
+- New spec file `display.md`: grid size cap, light/dark schemes with a mouse-only toggle, where the Entry mode line goes (`0711e14`, `c6a5031`). Every color comes from a CSS token so a future skin can restyle the app (`e2ac312`).
+- Writing convention: glossary terms are marked ◆CAPITALS in specs, tickets, and guides; code, tests, and commit messages stay plain (`912d261`). This log was left out of that change.
+- Observation (Claude): writing tickets turned up questions the specs hadn't answered (mouse use, Delete on hidden Candidates, grid size, dark mode). Breaking the work into tasks is also a review of the spec.
+
+## 2026-10-24 — task-1: scaffold and core boundary
+
+- First task through the full 8-step workflow. The main session set up the toolchain (npm scripts, Vite, Vitest, strict TypeScript) before test-writer started, so the tests had something to run on.
+- Alix approved the tests; decisions made then: Node built-ins and type-only imports count as boundary violations; DOM globals are flagged in `src/core/`; the storage interface will live in `src/core/` with the browser implementation outside it.
+- Two review rounds, five major findings, all in the boundary checker (template-literal imports, triple-slash references, globals reached through `globalThis`/`self`). Fixed by adding a second check: `src/core/` is also type-checked with no DOM or Node types.
+- A reviewer asked a spec question about commit scope for setup work; Alix settled it: `(setup)` / `(§M0)`.
+- UX review raised three questions for later: grid size cap, dark mode, where the Entry mode line goes. These became `display.md` and task-10.
+- Observation (Claude): every major finding was about the tool that enforces the architecture rule, not about the grid. An adversarial reviewer will dig into wherever the code is most complicated, and that won't always be where the product risk is.
+
+## 2026-10-24 — task-9 and task-2: deploying
+
+- Alix connected the repo to Vercel (task-9, `hitl`). task-2 checked it: GitHub showed "Vercel: success" for a push to `main` with no manual step, and the live site served the same files as a local build. Production: https://sudoku-app-navy.vercel.app/.
+- Review: the README claimed the type-check runs on every deploy, but nothing in the repo made that true. Fixed with `vercel.json` pinning the build command (`a6b2b60`). The record notes the main session made this fix itself rather than sending it to implementer, "given size" — a small departure from the workflow.
+- No tests: a README and config-only task.
+
+## 2026-10-24/25 — task-4: paste import (parsing only)
+
+**Settled with Alix at the tests checkpoint** (all spec gaps)
+- Fixture puzzles: `fixtures/puzzles/puzzle-{1,2}.txt` with solutions, built by `scripts/generate-puzzle.py`.
+- Error wording: "unexpected 'x' at row R, column C"; "found N cells, expected 81"; both errors at once → two toasts, count first.
+- Refusal text, toast lifetime (10 s, click to dismiss, stacked), no toast on success, 81 empty cells don't count as loaded.
+
+**Review**
+- Round 1: two majors, both about focus: clicking a toast moved focus off the grid, so the next paste silently did nothing; and the grid wasn't focused on load, so the first Cmd+V did nothing. Fixed, Alix choosing how in several places (grid focused on load, Escape dismisses toasts, one shared announcement area for screen readers, invisible characters named by code point).
+- Round 2: no majors. Two minors declined because they contradicted earlier choices of Alix's (toasts covering the grid on narrower windows; positions past row 9), so they went to Alix in the handoff.
+- Alix's decisions after round 2: toasts move below the grid when there's no room beside it; a bad character past cell 81 is "after the 81st cell"; a visible "Paste a puzzle to start" hint; a softer red for the refusal toast.
+- task-11 (replace the always-on focus ring with a one-second pale-blue flash) was folded into task-4 at Alix's request, then got its own one-round review.
+
+**Lesson: decisions were piling up in the ticket, not the spec.** By the end of task-4, a dozen behavior decisions existed only in ticket notes and the handoff. Alix: "yes, add them to the spec to keep it up-to-date." They went into `import.md`, `milestones.md`, and `keymap.md` (`d44e63e`), and the rule since then is that settled behavior is written into `docs/spec/` on the task's branch. Otherwise a later task (e.g. the M1 replace dialog, which also uses Escape) could be built without knowing about them.
+
+- Observation (Claude): the escalation rule worked as designed. Agents declined findings that clashed with Alix's earlier choices rather than overriding them, and Alix then changed two of those choices once the reviewers' evidence was in front of them.
+
+## 2026-10-25 — task-3: Selected cell and movement
+
+- One review round, two majors, both fixed: an accepted paste didn't reset the selection to row 1, column 1 (the existing test for it couldn't fail), and screen readers weren't told which cell was selected.
+- Modified arrows (Shift/Alt/Ctrl/Cmd) now do nothing and are left to the browser, since keymap §9 puts Shift+arrow off until later.
+- Declined minors flagged for Alix: the selection ring's size on small cells; no dark scheme yet; "no cell background" will clash with future Conflict/Mistake tints.
+- Observation (Claude): a test that couldn't fail is a pattern now seen in task-3 and task-4. Reviewers catch these; the test-approval checkpoint doesn't, because a test's name can read correctly while its assertion checks nothing.
+
+## 2026-10-25 — task-5: fill mode
+
+- Keymap §1 grew during the task: numpad digits count, Ctrl/Alt+digit and key repeat are ignored (`0fdd370`). code-reviewer flagged the spec edit as made without approval; declined, because the main session made it on Alix's instructions. The process check fired even though nothing was wrong.
+- ux-reviewer: Placed digits and Givens differ only by weight in forced-colors mode. Fixed by making Placed digits italic — then Alix had the italics dropped (`d059731`), so that finding is open again.
+- Observation (Claude): a reviewer's fix can be a design choice in disguise. The italics answered an accessibility finding but changed how the grid looks, which is Alix's call.
+
+**After merging: paste broke in production (task-13)**
+- After task-5 was deployed, pasting into the empty grid on the live app did nothing — no puzzle, no toast. All 440 tests still passed. Filed as a high-priority bug; cause not yet known.
+- **Lesson:** the tests run in a simulated browser (jsdom), and the agents' summaries said so each time ("not exercised in a real browser"). task-13 is the first time that gap let a regression reach production. Its acceptance criteria require reproducing the bug in a real browser and a test that would have caught it.
+
+**task-12 written: confirm before replacing a puzzle**
+- Open point for Alix before tests: `import.md` §5 asks for confirmation only once a digit or Candidate has been entered; Alix had described the trigger as "non-empty cells," which could include Givens.
+- Observation (Claude): the same kind of gap as "solution checking" and "successful" earlier — an everyday phrase standing in for a precise rule.
+
+## 2026-10-25 — task-10: grid size and color schemes
+
+- Introduced `Store` (`src/core/store.ts`), the single storage interface, with the browser implementation in `src/storage/`. The color scheme is the first saved state.
+- Spec question settled by Alix: a dark-scheme player saw a light flash on every reload. A small read-only script in `index.html` now reads the saved scheme before the app loads — the first exception to "only `Store` touches saved state," recorded in `AGENTS.md` and `display.md` §2 with the reason (the scheme is closer to a browser setting than to game state).
+- Round 1 major: toasts went below the grid on any window under 1448px wide, even with room beside it. Fixed by measuring the drawn grid.
+- Round 2: no majors; Alix approved removing an obsolete test. Trade-off noted: on short windows a toast can cover the hint while shown; `milestones.md` now says toasts may cover the Entry mode line (`707ca87`).
+- Contrast checked by calculation, not by eye; Alix's manual checks were listed in the handoff.
+- Test count so far: 104 (task-1) → 246 (task-4) → 306 (task-3) → 440 (task-5) → 606 (task-10).
+
+## 2026-10-25 — Moving to Claude Code
+
+- Work moved from the Claude desktop app to Claude Code, and the log stopped being updated: nothing past the milestones entry until this backfill.
+- Decided: the log is kept up to date as we work, not just at the end. The rule is now in `AGENTS.md` so any agent, in any tool, follows it, not just one Claude Code setup.
+- Claude's own calls, flagged for review: the main session writes the log (subagents report to it, as with Backlog.md); log updates are committed on the branch of the work they describe; glossary terms stay plain here, as in the earlier entries, rather than taking the ◆ marking.
