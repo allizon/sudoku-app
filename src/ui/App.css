@@ -50,6 +50,11 @@
   --toggle-background: #fff;
   --toggle-border: #8a8a8a;
 
+  /* The color scheme toggle's width, so the toast stack can keep clear of it. */
+  --toggle-width: 5rem;
+
+  /* App sets color-scheme on the root element to match the chosen scheme. */
+  color-scheme: light;
   font-family: system-ui, sans-serif;
   color: var(--page-text);
   background: var(--page-background);
@@ -64,12 +69,13 @@
   --page-text: #e1e4e9;
   --page-background: #15171c;
   --cell-background: #1d2027;
-  /* About 3.4:1 against the cells. */
-  --grid-line: #6b7280;
+  /* 4.2:1 against the cells, and 3.1:1 against the focus flash. */
+  --grid-line: #7a8190;
   --box-line: #b8bec9;
   --given-digit: #e8eaee;
   /* 6.7:1 against the cells. */
   --placed-digit: #7aa7f5;
+  /* Kept dark enough that thin lines stay above 3:1 on it. */
   --grid-focus-flash: #253650;
   --selected-ring: #6fa2f7;
   --selected-halo: #34507e;
@@ -83,7 +89,7 @@
   --toast-shadow: rgb(0 0 0 / 50%);
   --toggle-text: #e1e4e9;
   --toggle-background: #23262e;
-  --toggle-border: #6b7280;
+  --toggle-border: #7a8190;
 }
 
 body {
@@ -229,22 +235,66 @@ body {
 }
 
 /*
- * Parse errors and the refusal, stacked in the top-right corner (milestones.md
- * M0). The stack is as wide as the space right of the grid allows, between
- * 12rem and 24rem; it never runs off the bottom of the window, scrolling
- * instead. Narrower windows move it below the grid (the rule after .toast).
+ * Parse errors and the refusal, stacked (milestones.md M0). App measures the
+ * room beside the grid and sets data-placement (toast-placement.ts): "beside"
+ * puts the stack in the top-right corner, "below" at the bottom of the
+ * window, under the grid, so it never covers the grid.
  */
 .toasts {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
+}
+
+/*
+ * Beside the grid: as wide as the space right of the grid allows, between
+ * 12rem and 24rem (toast-placement.ts needs the same 12rem + 2rem), never
+ * running off the bottom of the window, scrolling instead.
+ */
+.toasts,
+.toasts[data-placement='beside'] {
+  top: 1rem;
+  bottom: auto;
+  left: auto;
+  right: 1rem;
+  align-items: stretch;
   max-width: min(clamp(12rem, calc((100vw - var(--grid-width)) / 2 - 2rem), 24rem), calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
+}
+
+/*
+ * Until App has measured, a window narrower than 1448px may have no room
+ * beside the grid at its largest (1000px of grid + 2 × (12rem of stack +
+ * 2rem of margin)), so the stack starts below the grid there.
+ */
+@media (width < 1448px) {
+  .toasts {
+    top: auto;
+    bottom: 0.5rem;
+    left: calc(1rem + var(--toggle-width) + 0.5rem);
+    right: 1rem;
+    align-items: center;
+    max-width: none;
+    max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
+  }
+}
+
+/*
+ * Below the grid: at the bottom of the window, right of the color scheme
+ * toggle so it never hides it, and no taller than the space under the grid
+ * (--grid-width follows the window), so it never covers the grid.
+ */
+.toasts[data-placement='below'] {
+  top: auto;
+  bottom: 0.5rem;
+  left: calc(1rem + var(--toggle-width) + 0.5rem);
+  right: 1rem;
+  align-items: center;
+  max-width: none;
+  max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
 }
 
 .toast {
@@ -261,37 +311,22 @@ body {
 }
 
 /*
- * Below 1448px wide there may be no 12rem of room right of the grid at its
- * largest: 1448px = 1000px of grid + 2 × (12rem of stack + 2rem of margin).
- * The stack then sits centered at the bottom of the window, no taller than
- * the space under the grid, so it never covers the grid. --grid-width follows
- * the window, so both placements keep clear of the grid at any grid size.
- */
-@media (width < 1448px) {
-  .toasts {
-    top: auto;
-    bottom: 0.5rem;
-    left: 1rem;
-    right: 1rem;
-    align-items: center;
-    max-width: none;
-    max-height: calc(100dvh - var(--page-padding) - var(--grid-width) - 1rem);
-  }
-}
-
-/*
  * The color scheme toggle (display.md §2), in the bottom-left corner. It is
  * fixed, so it takes no room from the grid, and it sits in the room kept
- * under the grid (--below-grid), left of the centered hint.
+ * under the grid (--below-grid), left of the centered hint. A filled dot
+ * marks the dark scheme as on; an empty one, off.
  */
 .color-scheme-toggle {
   position: fixed;
   bottom: 0.75rem;
   left: 1rem;
-  padding: 0.25rem 0.75rem;
+  box-sizing: border-box;
+  width: var(--toggle-width);
+  padding: 0.25rem 0.5rem;
   font: inherit;
   font-size: 0.875rem;
   line-height: 1.25rem;
+  white-space: nowrap;
   color: var(--toggle-text);
   background: var(--toggle-background);
   border: var(--thin-line-width) solid var(--toggle-border);

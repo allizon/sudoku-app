@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ToastPlacement } from './toast-placement';
 
 /** How long a toast stays before dismissing itself. */
 const TOAST_MS = 10_000;
@@ -32,19 +33,22 @@ export function useToasts() {
 
 type ToastsProps = {
   readonly toasts: readonly Toast[];
+  /** Beside or below the grid; App.css falls back on the window width until it is known. */
+  readonly placement?: ToastPlacement;
   readonly onDismiss: (id: number) => void;
 };
 
 /**
- * The stack of toasts in the top-right corner. The stack is one live region,
+ * The stack of toasts, beside the grid in the top-right corner or below it. The stack is one live region,
  * always rendered, so screen readers announce each toast as it is added, and
  * only that toast. Pressing anywhere on it (a toast, a gap, the scrollbar)
  * cancels the browser's focus change, so the grid keeps focus.
  */
-export function Toasts({ toasts, onDismiss }: ToastsProps) {
+export function Toasts({ toasts, placement, onDismiss }: ToastsProps) {
   return (
     <div
       className="toasts"
+      data-placement={placement}
       role="alert"
       aria-atomic="false"
       onMouseDown={(event) => event.preventDefault()}

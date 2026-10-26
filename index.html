@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sudoku</title>
+    <script>
+      // Draws the page in the saved color scheme from the start, so a reload
+      // in the dark scheme shows no light flash (display.md §2). It only
+      // reads; App saves through Store. This is the one read of saved state
+      // outside Store (AGENTS.md "Stack and architecture"): the key and the
+      // JSON format must stay in sync with src/storage/browser-store.ts
+      // ("sudoku:" prefix, JSON values) and src/core/color-scheme.ts (the
+      // "color-scheme" key, "light" or "dark"). index-html.test.ts checks this.
+      (function () {
+        var scheme = 'light';
+        try {
+          if (JSON.parse(window.localStorage.getItem('sudoku:color-scheme')) === 'dark') scheme = 'dark';
+        } catch (error) {
+          // Blocked or unreadable storage: light.
+        }
+        document.documentElement.setAttribute('data-color-scheme', scheme);
+        document.documentElement.style.setProperty('color-scheme', scheme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

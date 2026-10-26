@@ -7,6 +7,7 @@ import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from 
 import { moveSelection, type Direction, type Position } from '../core/selection';
 import type { Store } from '../core/store';
 import { createBrowserStore } from '../storage/browser-store';
+import { useToastPlacement } from './toast-placement';
 import { Toasts, useToasts } from './Toasts';
 import './App.css';
 
@@ -74,16 +75,28 @@ export function App({ store: givenStore }: AppProps) {
     setFlashing(true);
   }
 
-  // App.css keys each scheme's tokens on the root element. A layout effect
-  // applies it before the browser paints.
+  const toastPlacement = useToastPlacement(gridRef);
+
+  // App.css keys each scheme's tokens on the root element, and color-scheme
+  // tells the browser to draw its own parts (scrollbars) to match. A layout
+  // effect applies both before the browser paints.
   useLayoutEffect(() => {
-    document.documentElement.setAttribute('data-color-scheme', colorScheme);
+    const root = document.documentElement;
+    root.setAttribute('data-color-scheme', colorScheme);
+    root.style.setProperty('color-scheme', colorScheme);
+    return () => {
+      root.removeAttribute('data-color-scheme');
+      root.style.removeProperty('color-scheme');
+    };
   }, [colorScheme]);
 
+  // The toggle is a mouse control, so it hands keyboard focus back to the
+  // grid even when the grid had lost it (keymap.md §1).
   function toggleColorScheme() {
     const next = colorScheme === 'light' ? 'dark' : 'light';
     setColorScheme(next);
     saveColorScheme(store, next);
+    gridRef.current?.focus();
   }
 
   // The grid has focus from the start, so a paste works without a click first.
@@ -183,7 +196,7 @@ export function App({ store: givenStore }: AppProps) {
           Paste a puzzle to start
         </p>
       )}
-      <Toasts toasts={toasts} onDismiss={dismissToast} />
+      <Toasts toasts={toasts} placement={toastPlacement} onDismiss={dismissToast} />
       {/*
        * Mouse-only: out of the Tab order, and the mousedown handler above
        * keeps focus on the grid when it is clicked (display.md §2).
@@ -196,6 +209,10 @@ export function App({ store: givenStore }: AppProps) {
         aria-pressed={colorScheme === 'dark'}
         onClick={toggleColorScheme}
       >
+        {/* A filled or empty dot shows the state by shape as well as color. */}
+        <span className="color-scheme-toggle-mark" aria-hidden="true">
+          {colorScheme === 'dark' ? '●' : '○'}
+        </span>{' '}
         Dark
       </button>
     </main>
