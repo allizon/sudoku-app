@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { loadColorScheme, saveColorScheme, type ColorScheme } from '../core/color-scheme';
-import { fillDigit } from '../core/fill';
+import { centerMarksOf, cornerMarksOf } from '../core/candidates';
+import { enterDigit, INITIAL_ENTRY_MODE, nextEntryMode, type EntryMode } from '../core/entry-mode';
 import { digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
@@ -17,19 +18,73 @@ const REFUSAL = 'A puzzle is already loaded — reload the page to start a new o
 /** How long the grid's focus flash lasts, matching its animation in App.css. */
 const FLASH_MS = 1_000;
 
+/** What the Entry mode line says in each Entry mode (keymap.md §2). */
+const ENTRY_MODE_NAMES: Readonly<Record<EntryMode, string>> = {
+  fill: 'Fill mode',
+  center: 'Center mode',
+  corner: 'Corner mode',
+};
+
+/**
+ * What a cell's accessible name says it holds, e.g. "given 7", or
+ * "center marks 1 2, corner marks 3 9". Candidates hidden under a Placed
+ * digit are not named.
+ */
+function cellContents(cell: Cell): string {
+  switch (cell.kind) {
+    case 'empty':
+      return 'empty';
+    case 'given':
+      return `given ${cell.digit}`;
+    case 'placed':
+      return `placed ${cell.digit}`;
+    case 'candidates': {
+      const parts: string[] = [];
+      const centerMarks = centerMarksOf(cell);
+      const cornerMarks = cornerMarksOf(cell);
+      if (centerMarks.length > 0) parts.push(`center marks ${centerMarks.join(' ')}`);
+      if (cornerMarks.length > 0) parts.push(`corner marks ${cornerMarks.join(' ')}`);
+      return parts.join(', ');
+    }
+  }
+}
+
 /** A cell's accessible name, e.g. "Row 1, column 1, given 7". */
 function cellLabel(cell: Cell, row: number, column: number): string {
-  const contents = (() => {
-    switch (cell.kind) {
-      case 'empty':
-        return 'empty';
-      case 'given':
-        return `given ${cell.digit}`;
-      case 'placed':
-        return `placed ${cell.digit}`;
+  return `Row ${row + 1}, column ${column + 1}, ${cellContents(cell)}`;
+}
+
+/**
+ * What a cell draws: its digit, or its Candidates (Center marks small in the
+ * middle, Corner marks in the corners). Candidates hidden under a Placed
+ * digit are left out of the page.
+ */
+function CellContents({ cell }: { readonly cell: Cell }) {
+  switch (cell.kind) {
+    case 'empty':
+      return null;
+    case 'given':
+    case 'placed':
+      return cell.digit;
+    case 'candidates': {
+      const centerMarks = centerMarksOf(cell);
+      const cornerMarks = cornerMarksOf(cell);
+      return (
+        <>
+          {centerMarks.length > 0 && <span className="center-marks">{centerMarks.join('')}</span>}
+          {cornerMarks.length > 0 && (
+            <span className="corner-marks">
+              {cornerMarks.map((mark) => (
+                <span className="corner-mark" key={mark}>
+                  {mark}
+                </span>
+              ))}
+            </span>
+          )}
+        </>
+      );
     }
-  })();
-  return `Row ${row + 1}, column ${column + 1}, ${contents}`;
+  }
 }
 
 const ARROW_DIRECTIONS: Partial<Record<string, Direction>> = {
@@ -57,6 +112,8 @@ export function App({ store: givenStore }: AppProps) {
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
   // Exactly one cell is always selected; a Puzzle opens at row 1, column 1 (keymap.md §4).
   const [selected, setSelected] = useState<Position>({ row: 0, column: 0 });
+  // The Sticky mode: fill on every start, not saved across reloads (keymap.md §2).
+  const [entryMode, setEntryMode] = useState<EntryMode>(INITIAL_ENTRY_MODE);
   const gridRef = useRef<HTMLDivElement>(null);
   const empty = isEmptyPuzzle(puzzle);
   // Each focus starts a 1-second flash (import.md §2). focusCount tells one
@@ -128,7 +185,15 @@ export function App({ store: givenStore }: AppProps) {
     if (digit !== undefined) {
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
-      setPuzzle((current) => fillDigit(current, selected, digit));
+      setPuzzle((current) => enterDigit(current, selected, entryMode, digit));
+      return;
+    }
+    // N cycles the Sticky mode, by physical key and with or without Shift,
+    // like a digit (keymap.md §1, §2).
+    if (event.code === 'KeyN') {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+      event.preventDefault();
+      setEntryMode(nextEntryMode);
       return;
     }
     // Modified arrows are left to the browser (and to later features).
@@ -185,12 +250,16 @@ export function App({ store: givenStore }: AppProps) {
                 aria-readonly={cell.kind === 'given' ? true : undefined}
                 key={c}
               >
-                {cell.kind === 'empty' ? null : cell.digit}
+                <CellContents cell={cell} />
               </div>
             ))}
           </div>
         ))}
       </div>
+      {/* Always shown, so the player can see what a digit key will do (keymap.md §2). */}
+      <p className="entry-mode-line" data-entry-mode={entryMode} aria-live="polite">
+        {ENTRY_MODE_NAMES[entryMode]}
+      </p>
       {empty && (
         <p className="hint" id="grid-help">
           Paste a puzzle to start

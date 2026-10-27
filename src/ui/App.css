@@ -7,7 +7,10 @@
   --lines: calc(6 * var(--thin-line-width) + 4 * var(--box-line-width));
   /* The grid is as large as the window allows, up to this wide (display.md §1). */
   --grid-max-width: 1000px;
-  /* Room kept under the grid for the hint, and for toasts on narrow windows. */
+  /*
+   * Room kept under the grid for the Entry mode line and the hint (3.75rem
+   * together), and for toasts on narrow windows.
+   */
   --below-grid: 4rem;
   /*
    * Every cell's content size: the largest that fits the viewport (both ways)
@@ -45,6 +48,13 @@
   --toast-refusal-background: #9b4a44;
   /* On the page background, 6.7:1. */
   --hint-text: #595959;
+  /* The Entry mode line, on the page background: gray 6.7:1, blue 5.6:1, green 5.2:1. */
+  --entry-mode-fill: #595959;
+  --entry-mode-center: #1a5fd0;
+  --entry-mode-corner: #1e7a34;
+  /* Candidates: a neutral gray, apart from the black Givens and blue Placed digits. 6.8:1 on the cells. */
+  --center-mark: #555b66;
+  --corner-mark: #555b66;
   --toast-shadow: rgb(0 0 0 / 25%);
   --toggle-text: #222;
   --toggle-background: #fff;
@@ -93,6 +103,13 @@
   --toast-refusal-background: #8c4a45;
   /* 6.9:1 against the page. */
   --hint-text: #9aa1ad;
+  /* The Entry mode line, on the page: gray 7.6:1, blue 7.4:1, green 8.7:1. */
+  --entry-mode-fill: #a3a9b4;
+  --entry-mode-center: #7aa7f5;
+  --entry-mode-corner: #6cc788;
+  /* Lighter than the grid lines and dimmer than the digits: 7.6:1 on the cells. */
+  --center-mark: #aab1bd;
+  --corner-mark: #aab1bd;
   --toast-shadow: rgb(0 0 0 / 50%);
   --toggle-text: #e1e4e9;
   --toggle-background: #23262e;
@@ -189,6 +206,8 @@ body {
   border-bottom: var(--thin-line-width) solid var(--grid-line);
   /* A double-click or drag must not paint text selection over the ring. */
   user-select: none;
+  /* Corner marks are placed against the cell's edges. */
+  position: relative;
 }
 
 .cell:last-child {
@@ -224,6 +243,86 @@ body {
   color: var(--placed-digit);
 }
 
+/*
+ * Center marks: small, in the middle of the cell, wrapping onto a second
+ * line when there are too many for one.
+ */
+.cell .center-marks {
+  max-width: 70%;
+  font-size: calc(var(--cell-size) * 0.22);
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: var(--center-mark);
+}
+
+/*
+ * Corner marks, smaller still, in the conventional order: the four corners
+ * first, then the middles of the top, bottom, left and right edges. A ninth
+ * (rare in practice) sits between the first and the top middle.
+ */
+.cell .corner-marks {
+  position: absolute;
+  inset: calc(var(--cell-size) * 0.08);
+  font-size: calc(var(--cell-size) * 0.19);
+  line-height: 1;
+  color: var(--corner-mark);
+}
+
+.corner-mark {
+  position: absolute;
+}
+
+.corner-mark:nth-child(1) {
+  top: 0;
+  left: 0;
+}
+
+.corner-mark:nth-child(2) {
+  top: 0;
+  right: 0;
+}
+
+.corner-mark:nth-child(3) {
+  bottom: 0;
+  left: 0;
+}
+
+.corner-mark:nth-child(4) {
+  bottom: 0;
+  right: 0;
+}
+
+.corner-mark:nth-child(5) {
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.corner-mark:nth-child(6) {
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.corner-mark:nth-child(7) {
+  top: 50%;
+  left: 0;
+  translate: 0 -50%;
+}
+
+.corner-mark:nth-child(8) {
+  top: 50%;
+  right: 0;
+  translate: 0 -50%;
+}
+
+.corner-mark:nth-child(9) {
+  top: 0;
+  left: 25%;
+  translate: -50% 0;
+}
+
 /* The Selected cell. The inset ring stays inside the cell so no line moves. */
 .cell[aria-selected='true'] {
   box-shadow:
@@ -234,7 +333,29 @@ body {
   outline-offset: -2px;
 }
 
-/* The hint under the empty grid. */
+/*
+ * The Entry mode line, right under the grid, colored by Entry mode
+ * (keymap.md §2). 1.5rem tall with its margin.
+ */
+.entry-mode-line {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.entry-mode-line[data-entry-mode='fill'] {
+  color: var(--entry-mode-fill);
+}
+
+.entry-mode-line[data-entry-mode='center'] {
+  color: var(--entry-mode-center);
+}
+
+.entry-mode-line[data-entry-mode='corner'] {
+  color: var(--entry-mode-corner);
+}
+
+/* The hint under the empty grid, below the Entry mode line. */
 .hint {
   margin: 0.75rem 0 0;
   line-height: 1.5rem;

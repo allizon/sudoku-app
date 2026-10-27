@@ -1,4 +1,5 @@
 // The Puzzle: the 9×9 grid being solved (see CONTEXT.md).
+import type { Position } from './selection';
 
 /** Rows and columns in a Puzzle. */
 export const GRID_SIZE = 9;
@@ -10,13 +11,26 @@ export const BOX_SIZE = 3;
 export type Digit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 /**
- * One cell of the Puzzle: empty, a Given, or a placed digit. Candidates
- * will be added as a further shape of this type.
+ * A cell's Candidates: its Center marks and Corner marks, each in ascending
+ * order with no repeats. At least one of the two lists is non-empty wherever
+ * a Cell holds this.
+ */
+export type Candidates = {
+  readonly centerMarks: readonly Digit[];
+  readonly cornerMarks: readonly Digit[];
+};
+
+/**
+ * One cell of the Puzzle: empty, a Given, a Placed digit, or only
+ * Candidates. A Placed digit keeps any Candidates the cell had, hidden, so
+ * they reappear when the digit is removed (keymap.md §7); it has no
+ * `candidates` field when there are none.
  */
 export type Cell =
   | { readonly kind: 'empty' }
   | { readonly kind: 'given'; readonly digit: Digit }
-  | { readonly kind: 'placed'; readonly digit: Digit };
+  | { readonly kind: 'placed'; readonly digit: Digit; readonly candidates?: Candidates }
+  | { readonly kind: 'candidates'; readonly candidates: Candidates };
 
 /** The Puzzle's grid as `cells[row][column]`, both 0-based. */
 export type Puzzle = { readonly cells: readonly (readonly Cell[])[] };
@@ -30,7 +44,16 @@ export function createEmptyPuzzle(): Puzzle {
   };
 }
 
-/** Whether the cell holds nothing at all. */
+/** A copy of the Puzzle with the cell at a position replaced. */
+export function replaceCell(puzzle: Puzzle, position: Position, next: Cell): Puzzle {
+  return {
+    cells: puzzle.cells.map((row, r) =>
+      r === position.row ? row.map((cell, c) => (c === position.column ? next : cell)) : row,
+    ),
+  };
+}
+
+/** Whether the cell holds nothing at all: no digit and no Candidates. */
 export function isEmptyCell(cell: Cell): boolean {
   return cell.kind === 'empty';
 }
