@@ -1,5 +1,5 @@
 // Candidates: Center marks and Corner marks (keymap.md §2, §7).
-import { replaceCell, type Candidates, type Cell, type Digit, type Puzzle } from './puzzle';
+import { replaceCell, withCandidates, type Candidates, type Cell, type Digit, type Puzzle } from './puzzle';
 import type { Position } from './selection';
 
 const NONE: readonly Digit[] = [];
@@ -44,12 +44,8 @@ function toggleMark(puzzle: Puzzle, position: Position, change: (candidates: Can
   const current = puzzle.cells[position.row]?.[position.column];
   if (current === undefined) return puzzle;
   if (current.kind !== 'empty' && current.kind !== 'candidates') return puzzle;
-  const next = change(current.kind === 'candidates' ? current.candidates : { centerMarks: NONE, cornerMarks: NONE });
-  const cell: Cell =
-    next.centerMarks.length === 0 && next.cornerMarks.length === 0
-      ? { kind: 'empty' }
-      : { kind: 'candidates', candidates: next };
-  return replaceCell(puzzle, position, cell);
+  const candidates = current.kind === 'candidates' ? current.candidates : { centerMarks: NONE, cornerMarks: NONE };
+  return replaceCell(puzzle, position, withCandidates(change(candidates)));
 }
 
 /** The marks with the digit removed if present, or added in ascending order if not. */

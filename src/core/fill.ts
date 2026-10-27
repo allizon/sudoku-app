@@ -1,4 +1,4 @@
-import { replaceCell, type Cell, type Digit, type Puzzle } from './puzzle';
+import { placedOver, replaceCell, withCandidates, type Cell, type Digit, type Puzzle } from './puzzle';
 import type { Position } from './selection';
 
 /**
@@ -17,14 +17,11 @@ export function fillDigit(puzzle: Puzzle, position: Position, digit: Digit): Puz
 function filled(current: Exclude<Cell, { kind: 'given' }>, digit: Digit): Cell {
   switch (current.kind) {
     case 'empty':
-      return { kind: 'placed', digit };
+      return placedOver(digit, undefined);
     case 'candidates':
-      return { kind: 'placed', digit, candidates: current.candidates };
-    case 'placed': {
-      const { candidates } = current;
-      if (current.digit !== digit)
-        return candidates === undefined ? { kind: 'placed', digit } : { kind: 'placed', digit, candidates };
-      return candidates === undefined ? { kind: 'empty' } : { kind: 'candidates', candidates };
-    }
+      return placedOver(digit, current.candidates);
+    case 'placed':
+      if (current.digit !== digit) return placedOver(digit, current.candidates);
+      return current.candidates === undefined ? { kind: 'empty' } : withCandidates(current.candidates);
   }
 }

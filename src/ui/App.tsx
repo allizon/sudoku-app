@@ -172,8 +172,10 @@ export function App({ store: givenStore }: AppProps) {
     const result = parsePuzzle(event.clipboardData.getData('text/plain'));
     if (result.ok) {
       setPuzzle(result.puzzle);
-      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4).
+      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4) and
+      // starts in fill mode (import.md §5).
       setSelected({ row: 0, column: 0 });
+      setEntryMode(INITIAL_ENTRY_MODE);
     } else for (const error of result.errors) showToast('parse-error', error.message);
   }
 

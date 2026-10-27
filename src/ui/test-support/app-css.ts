@@ -477,8 +477,22 @@ export function gridLayout(css: string, viewport: Viewport) {
   const gridHeight = borderBox ? 9 * cellHeight + 2 * box : 9 * cellHeight + lines;
 
   const padding = length(need('.app', 'padding'));
-  // The line of text under the grid: the hint today, the Entry mode line later.
-  const hintMargin = length(need('.hint', 'margin'));
-  const hintLine = length(need('.hint', 'line-height'));
-  return { cellWidth, cellHeight, gridWidth, gridHeight, padding, belowGrid: hintMargin + hintLine };
+  // The lines of text under the grid: the Entry mode line, always shown, and
+  // under it the hint, shown only while the grid is empty.
+  const entryModeLine = length(need('.entry-mode-line', 'margin')) + length(need('.entry-mode-line', 'line-height'));
+  const hint = length(need('.hint', 'margin')) + length(need('.hint', 'line-height'));
+  // The room App.css keeps under the grid when it sizes the cells.
+  const belowGridRoom = evaluateLength(need(':root', '--below-grid'), viewport);
+  return {
+    cellWidth,
+    cellHeight,
+    gridWidth,
+    gridHeight,
+    padding,
+    /** Under an empty grid: the Entry mode line and the hint, the most text the grid ever has under it. */
+    belowGrid: entryModeLine + hint,
+    /** Under a grid with a Puzzle loaded: the Entry mode line alone. */
+    belowGridLoaded: entryModeLine,
+    belowGridRoom,
+  };
 }

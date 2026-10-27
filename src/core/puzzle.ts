@@ -44,6 +44,27 @@ export function createEmptyPuzzle(): Puzzle {
   };
 }
 
+const hasNoCandidates = (candidates: Candidates): boolean =>
+  candidates.centerMarks.length === 0 && candidates.cornerMarks.length === 0;
+
+/**
+ * A cell holding only these Candidates: an empty cell when there are none,
+ * so no cell ever holds an empty list of Candidates.
+ */
+export function withCandidates(candidates: Candidates): Cell {
+  return hasNoCandidates(candidates) ? { kind: 'empty' } : { kind: 'candidates', candidates };
+}
+
+/**
+ * A Placed digit hiding these Candidates. With none (or undefined), the cell
+ * has no `candidates` field at all.
+ */
+export function placedOver(digit: Digit, candidates: Candidates | undefined): Cell {
+  return candidates === undefined || hasNoCandidates(candidates)
+    ? { kind: 'placed', digit }
+    : { kind: 'placed', digit, candidates };
+}
+
 /** A copy of the Puzzle with the cell at a position replaced. */
 export function replaceCell(puzzle: Puzzle, position: Position, next: Cell): Puzzle {
   return {

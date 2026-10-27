@@ -96,3 +96,22 @@ describe('Grid size: the whole grid fits in the window without scrolling (AC #2)
     },
   );
 });
+
+describe('Grid size: the Entry mode line (and the hint, while shown) fit in the room kept under the grid (display.md §1)', () => {
+  it.each(WINDOWS)('on a $width×$height window, under an empty grid, the Entry mode line and the hint fit in --below-grid', (window) => {
+    const { belowGrid, belowGridRoom } = layout(window.width, window.height);
+    expect(belowGrid, label(window)).toBeGreaterThan(0);
+    expect(belowGrid, label(window)).toBeLessThanOrEqual(belowGridRoom + 0.5);
+  });
+
+  it.each(WINDOWS)('on a $width×$height window, with a Puzzle loaded (no hint), the Entry mode line fits in --below-grid', (window) => {
+    const { belowGridLoaded, belowGridRoom } = layout(window.width, window.height);
+    expect(belowGridLoaded, label(window)).toBeGreaterThan(0);
+    expect(belowGridLoaded, label(window)).toBeLessThanOrEqual(belowGridRoom + 0.5);
+  });
+
+  it.each(WINDOWS)('on a $width×$height window, with a Puzzle loaded, the grid and the Entry mode line fit down', (window) => {
+    const { gridHeight, padding, belowGridLoaded } = layout(window.width, window.height);
+    expect(gridHeight + 2 * padding + belowGridLoaded, label(window)).toBeLessThanOrEqual(window.height + 0.5);
+  });
+});
