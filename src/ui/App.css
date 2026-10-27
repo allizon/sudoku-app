@@ -22,6 +22,12 @@
   --fit-height: calc((100dvh - 2 * var(--page-padding) - var(--lines) - var(--below-grid)) / 9);
   --cell-size: min(var(--max-cell), var(--fit-width), var(--fit-height));
   --grid-width: calc(9 * var(--cell-size) + var(--lines));
+  /*
+   * How far Corner marks sit from the cell's edges: always clear of the
+   * Selected cell's ring and halo (6px deep), even on small cells.
+   * candidates-layout.test.ts checks the two stay apart.
+   */
+  --corner-marks-inset: max(calc(var(--cell-size) * 0.08), 7px);
 
   /*
    * Color tokens, light color scheme: every color the app uses (display.md §2).
@@ -259,16 +265,17 @@ body {
 /*
  * Corner marks, smaller still, in the conventional order: the four corners
  * first, then the middles of the top, bottom, left and right edges. A ninth
- * (rare in practice) sits between the first and the top middle.
+ * (rare in practice) sits on the top edge between the first and the top
+ * middle.
  */
 .cell .corner-marks {
   position: absolute;
+  inset: var(--corner-marks-inset);
   /*
-   * Always clear of the Selected cell's ring and halo (6px deep, below), even
-   * on small cells. candidates-layout.test.ts checks the two stay apart.
+   * On small cells the inset takes a larger share of the cell, so the size is
+   * capped to keep three rows (and four marks across) apart in what is left.
    */
-  inset: max(calc(var(--cell-size) * 0.08), 7px);
-  font-size: calc(var(--cell-size) * 0.19);
+  font-size: min(calc(var(--cell-size) * 0.19), calc((var(--cell-size) - 2 * var(--corner-marks-inset)) / 3.5));
   line-height: 1;
   color: var(--corner-mark);
 }
@@ -324,12 +331,13 @@ body {
 .corner-mark:nth-child(9) {
   top: 0;
   left: 25%;
-  translate: -50% 0;
+  /* A quarter of its own width left: past the first mark and short of the top middle. */
+  translate: -25% 0;
 }
 
 /*
  * The Selected cell. The inset ring stays inside the cell so no line moves.
- * Corner marks keep clear of its 6px depth (.corner-marks inset, above).
+ * Corner marks keep clear of its 6px depth (--corner-marks-inset).
  */
 .cell[aria-selected='true'] {
   box-shadow:

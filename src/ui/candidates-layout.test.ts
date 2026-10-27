@@ -121,3 +121,66 @@ describe('Candidates layout: Corner marks stay clear of the Selected cell ring (
     expect(inset).toBeGreaterThan(selectedRingReach(viewport));
   });
 });
+
+/*
+ * Where each Corner mark lands, modelled from App.css: the .corner-marks box
+ * (the cell less its inset on each side), each .corner-mark:nth-child(n) placed
+ * by top/bottom/left/right (0 or a percentage of the box) and nudged by
+ * translate (a percentage of its own size). A digit's box is assumed to be
+ * 0.6em wide (system-ui digits are about 0.55–0.6em) and one line-height tall.
+ */
+const DIGIT_WIDTH_EM = 0.6;
+
+type Box = { left: number; top: number; right: number; bottom: number };
+
+function cornerMarkBoxes(viewport: Viewport): Box[] {
+  const cell = length('var(--cell-size)', viewport);
+  const inset = length(need('.cell .corner-marks', 'inset'), viewport);
+  const size = cell - 2 * inset;
+  const font = length(need('.cell .corner-marks', 'font-size'), viewport);
+  const width = DIGIT_WIDTH_EM * font;
+  const height = Number(need('.cell .corner-marks', 'line-height')) * font;
+  /** A position offset: "0", a percentage of the box, or a length. */
+  const offset = (value: string) => (value.endsWith('%') ? (parseFloat(value) / 100) * size : length(value, viewport));
+  /** A translate part: "0" or a percentage of the mark's own size. */
+  const shift = (value: string | undefined, own: number) =>
+    value === undefined || value === '0' ? 0 : value.endsWith('%') ? (parseFloat(value) / 100) * own : length(value, viewport);
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+    const selector = `.corner-mark:nth-child(${n})`;
+    const at = (property: string) => propertyOf(rules, selector, property);
+    const [tx, ty] = (at('translate') ?? '0 0').split(/\s+/);
+    const left = at('left');
+    const right = at('right');
+    const top = at('top');
+    const bottom = at('bottom');
+    if ((left ?? right) === undefined || (top ?? bottom) === undefined) throw new Error(`${selector} is not placed`);
+    const x = (left !== undefined ? offset(left) : size - offset(right ?? '0') - width) + shift(tx, width);
+    const y = (top !== undefined ? offset(top) : size - offset(bottom ?? '0') - height) + shift(ty, height);
+    return { left: x, top: y, right: x + width, bottom: y + height };
+  });
+}
+
+const overlap = (a: Box, b: Box) => a.left < b.right - 0.01 && b.left < a.right - 0.01 && a.top < b.bottom - 0.01 && b.top < a.bottom - 0.01;
+
+/** Small cells too: the narrowest windows give cells of about 25–30px. */
+const SMALL_AND_LARGE: Viewport[] = [{ width: 280, height: 480 }, ...WINDOWS];
+
+describe('Candidates layout: no two Corner marks overlap, at any cell size (R2-3)', () => {
+  it.each(SMALL_AND_LARGE)('on a $width×$height window, all nine Corner marks stay apart', (viewport) => {
+    const boxes = cornerMarkBoxes(viewport);
+    for (let a = 0; a < boxes.length; a += 1)
+      for (let b = a + 1; b < boxes.length; b += 1)
+        expect(overlap(boxes[a] as Box, boxes[b] as Box), `Corner marks ${a + 1} and ${b + 1}`).toBe(false);
+  });
+
+  it.each(SMALL_AND_LARGE)('on a $width×$height window, every Corner mark stays inside the .corner-marks box', (viewport) => {
+    const cell = length('var(--cell-size)', viewport);
+    const size = cell - 2 * length(need('.cell .corner-marks', 'inset'), viewport);
+    for (const [i, box] of cornerMarkBoxes(viewport).entries()) {
+      expect(box.left, `Corner mark ${i + 1} left`).toBeGreaterThanOrEqual(-0.01);
+      expect(box.top, `Corner mark ${i + 1} top`).toBeGreaterThanOrEqual(-0.01);
+      expect(box.right, `Corner mark ${i + 1} right`).toBeLessThanOrEqual(size + 0.01);
+      expect(box.bottom, `Corner mark ${i + 1} bottom`).toBeLessThanOrEqual(size + 0.01);
+    }
+  });
+});

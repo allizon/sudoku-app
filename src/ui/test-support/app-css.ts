@@ -491,8 +491,6 @@ export function gridLayout(css: string, viewport: Viewport) {
     padding,
     /** Under an empty grid: the Entry mode line and the hint, the most text the grid ever has under it. */
     belowGrid: entryModeLine + hint,
-    /** Under a grid with a Puzzle loaded: the Entry mode line alone. */
-    belowGridLoaded: entryModeLine,
     belowGridRoom,
   };
 }
