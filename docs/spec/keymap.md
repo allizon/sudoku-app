@@ -21,9 +21,11 @@ There are three **◆ENTRY MODEs**: _fill_, _center_, and _corner_.
 | center | toggles that digit as a ◆CENTER MARK            |
 | corner | toggles that digit as a ◆CORNER MARK            |
 
-- `N` cycles the ◆STICKY MODE: fill → center → corner → fill.
+- `N` cycles the ◆STICKY MODE: fill → center → corner → fill. Like the digit keys ([§1](#1-principles)), `N` is identified by physical key; Shift + `N` cycles too, Cmd/Ctrl/Alt + `N` is left to the browser, and key auto-repeat is ignored.
+- The app starts in fill mode. The ◆STICKY MODE is not remembered across a reload, and an accepted import starts in fill mode ([`import.md`](./import.md) §5).
 - The current mode is always visible on screen, as a small line of text under the grid naming the mode. Its color depends on the mode: gray for fill, blue for center, green for corner, with shades suited to each color scheme ([`display.md`](./display.md) §2).
 - This line updates instantly whenever the mode changes. While a chord's letter is held ([§3](#3-letter-chords)), it shows the chord's mode; when the letter is released, it reverts to the ◆STICKY MODE.
+- The ◆ENTRY MODE LINE reads "Fill mode", "Center mode", or "Corner mode". Screen readers announce it politely when the mode changes.
 
 ## 3. Letter chords
 

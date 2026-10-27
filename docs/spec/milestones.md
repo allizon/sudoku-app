@@ -49,4 +49,4 @@ Not yet assigned to a milestone:
 - Bordered-grid import
 - Sync across devices
 - Timer, streaks
-- Skins: player-selectable visual themes beyond light and dark ([`display.md`](./display.md) §3)
+- Skins: player-selectable visual themes beyond light and dark ([`display.md`](./display.md) §4)

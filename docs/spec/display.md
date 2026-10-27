@@ -12,13 +12,21 @@ Terms (◆GIVEN, ◆CANDIDATE, ◆CENTER MARK, ◆CORNER MARK, …) are defined 
 
 - The app has a light and a dark color scheme.
 - Every color the app uses (grid lines, digits, ◆CANDIDATEs, the ◆ENTRY MODE LINE, and the feedback colors in [`feedback.md`](./feedback.md)) is chosen for both schemes.
-- Every color is set through a CSS token (a CSS custom property); no color is written directly where it is used. Each scheme is a set of token values, so a future skin (§3) can change the app's appearance by supplying its own. Each color token holds only a color (line widths and other sizes are separate tokens), so a skin supplies colors and nothing else.
+- Every color is set through a CSS token (a CSS custom property); no color is written directly where it is used. Each scheme is a set of token values, so a future skin (§4) can change the app's appearance by supplying its own. Each color token holds only a color (line widths and other sizes are separate tokens), so a skin supplies colors and nothing else.
 - The app starts in the light scheme. The player switches schemes with a toggle in the app; the system's light/dark setting is not used.
 - The toggle is mouse-only, with no key. It is also left out of the Tab order, so no key reaches it. This is a setting, not part of solving, so it is an exception to "fully playable from the keyboard" ([`keymap.md`](./keymap.md) §1).
-- In both schemes, grid lines and box lines meet at least 3:1 contrast against the background, and text (◆GIVENs, ◆PLACED DIGITs, the hint line, toasts) meets at least 4.5:1.
+- In both schemes, grid lines and box lines meet at least 3:1 contrast against the background, and text (◆GIVENs, ◆PLACED DIGITs, ◆CANDIDATEs, the hint line, the ◆ENTRY MODE LINE, toasts) meets at least 4.5:1.
 - The chosen scheme is remembered across reloads, saved through the storage interface ([`AGENTS.md`](../../AGENTS.md) "Stack and architecture").
 - On a reload, the page is drawn in the chosen scheme from the start, with no flash of the other scheme. To do that, a script in the page reads the saved scheme before the app loads, outside the storage interface. This exception is allowed because the color scheme is closer to a browser setting than to game state: it isn't part of the ◆PUZZLE or solving (AGENTS.md records the exception).
 
-## 3. Not in this version
+## 3. Candidates
+
+- ◆CENTER MARKs and ◆CORNER MARKs are each drawn in ascending order, whatever order they were entered in. The same digit can be both a ◆CENTER MARK and a ◆CORNER MARK in one cell.
+- ◆CENTER MARKs are drawn small in the middle of the cell and wrap onto a second line when they don't fit on one.
+- ◆CORNER MARKs are drawn smaller still, filling the four corners first (top-left, top-right, bottom-left, bottom-right), then the middles of the top, bottom, left, and right edges; a ninth sits along the top edge. They stay clear of the ◆SELECTED CELL's ring, and on very small cells they shrink so all nine fit without overlapping.
+- The two kinds of mark have their own color tokens but may share a color; position and size tell them apart.
+- ◆CANDIDATEs hidden under a ◆PLACED DIGIT are not drawn and are not named to screen readers. A cell's screen-reader name lists its marks, e.g. "center marks 1 4 7, corner marks 2 8".
+
+## 4. Not in this version
 
 - Skins: player-selectable visual themes beyond light and dark ([`milestones.md`](./milestones.md) "Later").
