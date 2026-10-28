@@ -40,10 +40,11 @@ Rules:
 
 1. A chord is active for as long as its letter is held. Several digits can be pressed during one chord (hold `C`, press 1, 4, 7 → three ◆CENTER MARKs toggled).
 2. `C` or `S` pressed and released with no digit does nothing.
-3. Key auto-repeat from a held letter is ignored.
+3. Key auto-repeat from a held letter is ignored. A repeat with no first press before it (e.g. returning to the window with `C` still held) starts no chord; pressing the letter again does.
 4. If the window loses focus, any held chord is released.
 5. A chord overrides the ◆STICKY MODE for that keypress only; the ◆STICKY MODE is unchanged afterwards. While the letter is held, the ◆ENTRY MODE LINE shows the chord's mode ([§2](#2-entry-modes)).
-6. If `C` and `S` are both held, no chord applies and digit presses do nothing.
+6. If `C` and `S` are both held, no chord applies and digit presses do nothing. Releasing one of them while the other stays held brings back the other's chord.
+7. Like `N` ([§2](#2-entry-modes)), `C` and `S` are identified by physical key. Shift + `C`/`S` starts a chord; Cmd/Ctrl/Alt + `C`/`S` starts no chord and is left to the browser (so Cmd+C still copies). Releasing the letter ends the chord whatever modifiers are held at the time.
 
 ## 4. Movement
 
