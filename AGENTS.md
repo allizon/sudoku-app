@@ -45,7 +45,7 @@ Each step ends at its **checkpoint**; move to the next step only once it is met.
 
    Checkpoint: no open major findings, or the open ones are escalated.
 6. **Tidy.** Rebase onto `main`. Each commit on the branch is one meaningful TDD step with a clear message. Checkpoint: the branch is a clean red → green sequence on top of current `main`.
-7. **Hand off.** Post a "ready to merge" note to Alix containing:
+7. **Hand off.** First check that every decision Alix settled during the task is written into `docs/spec/` on the branch (as a `docs(<area>): …` commit), not only in the ticket or this note. Then post a "ready to merge" note to Alix containing:
    - what changed, in a few lines
    - test results
    - **spec gaps**: every decision made that the spec didn't cover
