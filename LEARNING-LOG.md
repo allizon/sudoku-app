@@ -407,3 +407,13 @@ _The entries from here to "2026-10-25 — Moving to Claude Code" were written af
 - Caught at merge: the settled decisions were only in the handoff, not in `docs/spec/`, which Alix had asked for on task-4. Added `9c69593` (keymap §2, new display §3 for Candidates) before merging.
 - **Lesson:** the rule was in memory, not in AGENTS.md's workflow steps, so the checklist I was following didn't prompt for it. Worth a line in step 7: check that settled decisions are in the spec before handing off.
 - Merged and pushed (deploys). Still open for Alix: whether every letter key goes by physical key; a stray mark before any puzzle blocks paste with misleading text; hidden Candidates aren't announced; a real-browser look at mark layout on small cells.
+
+## 2026-10-27 — after task-6: follow-ups settled
+
+- Alix: letter keys don't need a layout rule — "since this is for me, that's overkill." N stays as built.
+- Alix: "don't worry about screen readers … this is for me." Existing ARIA stays; no more effort on it, and reviewers shouldn't raise it. Saved as a standing preference.
+- Alix: "ignore any marks before the puzzle loads." Exact behavior still to confirm before it becomes a ticket.
+- Alix looked in a real browser: "everything fits," but doesn't like how a full set of Corner marks looks. Filed as task-14 (bug).
+- Observation (Claude): two of the four open questions turned out not to matter for a one-person app. Knowing who the app is for up front would have kept them off the test checkpoint.
+- Alix confirmed: until a Puzzle is loaded, digit keys do nothing in every Entry mode, placed digits included (not "paste wipes them"). Filed as task-15.
+- Alix approved adding to AGENTS.md step 7: check that settled decisions are written into docs/spec/ before handing off. The rule was only in Claude's memory before, so the workflow didn't prompt for it during task-6.
