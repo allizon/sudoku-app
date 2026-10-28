@@ -381,3 +381,29 @@ _The entries from here to "2026-10-25 — Moving to Claude Code" were written af
 - Supersedes the earlier call to commit log updates on each task's branch. Now: entries stay uncommitted in the main checkout during the day; once a day they go straight to `main` as one `docs(log)` commit and are pushed, with no branch or approval. Written into `AGENTS.md` ("Learning log", plus a note on step 8).
 - Claude's own calls, flagged for review: the first session on a new day commits any leftover entries; cloud sessions, which can't leave changes uncommitted, commit theirs on their branch.
 - Observation (Claude): every log commit was going to trigger a production deploy, because pushing `main` deploys. Batching the log once a day keeps deploys for actual changes to the app.
+
+## 2026-10-26 — task-6: Entry modes and Candidates
+
+- Started on branch `task-6/entry-modes-and-candidates`; test-writer dispatched with ACs, keymap §1/§2/§7, display §2, and the glossary.
+- Observation (Claude): task-13 (paste broken in production, high priority) is still To Do while task-6 starts. task-6 doesn't depend on it, but paste is how a Puzzle with Givens gets onto the grid in the live app.
+- test-writer: 176 failing tests in 4 files, no existing tests changed. On the first run, 17 UI tests passed only because N did nothing (the app stayed in fill mode); the test-writer caught and fixed them before handing back. It also ran the core tests against throwaway stubs to show they can fail.
+- Observation (Claude): that's the "test that can't fail" pattern from task-3 and task-4, caught this time by the test-writer itself, because the brief asked it to check.
+- Open for Alix at the test checkpoint: N by physical key or typed letter; Shift+N; exact wording of the Entry mode line; whether a grid with only Candidates refuses a paste; screen-reader announcement of mode changes.
+- Alix approved the tests ("approved") without answering the five questions. Claude's own call, flagged for review: took that as approval of the tests as written — N by physical key, Shift+N cycles, a grid with only Candidates refuses a paste, line wording left to the implementer (only the mode name is checked), and no screen-reader announcement of mode changes. The last two differ from Claude's recommendations and go in the handoff as spec gaps.
+- Committed red: 176 new tests failing, the 606 existing ones passing.
+- Green in one pass (`dcc3681`): 782 tests, typecheck clean, no tests changed. Candidates live in a new `'candidates'` cell kind plus a hidden field on `'placed'`, so "empty" still means "holds nothing".
+- The implementer added `aria-live="polite"` to the Entry mode line, though Alix hadn't asked for it (it was question 5, left unanswered). Nothing in the tests forbade it. Flag for Alix in the handoff.
+- Observation (Claude): the implementer noticed that the existing grid-size test measures only the hint line, so it can't catch the new Entry mode line pushing the page into scrolling. Another test that looks like it covers something it doesn't. Sent to code-reviewer to assess.
+- Review round 1: code-reviewer found no wrong behavior but two major test gaps, both "tests that can't fail" again. The grid-size test ignores the Entry mode line. The test meant to show Center and Corner marks look different compares the unresolved `var(...)` strings, which always differ, while both tokens actually resolve to the same gray. Position, the real difference, wasn't tested at all.
+- Both reviewers independently found that Corner marks sit on the Selected cell's ring on cells under about 75px, down to about 4:1 contrast (calculated, not seen in a browser).
+- ux-reviewer: an accepted paste didn't reset to fill mode, though import.md §5 says it should. The spec covered it; the tests didn't.
+- **Lesson:** "the tests pass" and "the test checks what its name says" are different claims. Comparing CSS strings instead of resolved values is a new way a test can look right and check nothing.
+- Review round 2: no majors, and all round 1 fixes checked out. Three new minors went back to the implementer. Two of the new grid-size tests could never fail on their own. A correct fix to the grid-size model had loosened an approved test by 24px without changing any of its assertions. And the 7px floor added to keep Corner marks clear of the ring made Corner marks 1 and 9 overlap on phone-sized cells.
+- Observation (Claude): every review fix this task added new tests, and round 2 still found tests among them that couldn't fail. Fixing a test gap doesn't make the next test trustworthy.
+- **Lesson:** "no assertion was changed" isn't enough to say a test kept its strength. A test can get weaker when the helper it measures through changes.
+- Round 2 fixes (`04551b0`): all three fixed. Fixing the 1-and-9 overlap turned up a second one (marks 1 and 7) on tiny cells. The fix caps the Corner mark size there, down to about 4.6px text on a 30px cell. That's for Alix to look at on a phone.
+- Tidy: the branch was already on current main. Reworded the round 1 commit subject to name import §5. 844 tests green. Handing off.
+- Alix: "approved for all" — the merge, the two strengthened approved tests, and the spec gaps as listed (including the unrequested screen-reader announcement).
+- Caught at merge: the settled decisions were only in the handoff, not in `docs/spec/`, which Alix had asked for on task-4. Added `9c69593` (keymap §2, new display §3 for Candidates) before merging.
+- **Lesson:** the rule was in memory, not in AGENTS.md's workflow steps, so the checklist I was following didn't prompt for it. Worth a line in step 7: check that settled decisions are in the spec before handing off.
+- Merged and pushed (deploys). Still open for Alix: whether every letter key goes by physical key; a stray mark before any puzzle blocks paste with misleading text; hidden Candidates aren't announced; a real-browser look at mark layout on small cells.
