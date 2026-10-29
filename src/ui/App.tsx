@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { loadColorScheme, saveColorScheme, type ColorScheme } from '../core/color-scheme';
 import { centerMarksOf, cornerMarksOf } from '../core/candidates';
+import { activeEntryMode, holdLetter, NONE_HELD, releaseLetter, type HeldLetters } from '../core/chord';
 import { enterDigit, INITIAL_ENTRY_MODE, nextEntryMode, type EntryMode } from '../core/entry-mode';
-import { digitFromCode } from '../core/keys';
+import { chordLetterFromCode, digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { moveSelection, type Direction, type Position } from '../core/selection';
@@ -114,6 +115,10 @@ export function App({ store: givenStore }: AppProps) {
   const [selected, setSelected] = useState<Position>({ row: 0, column: 0 });
   // The Sticky mode: fill on every start, not saved across reloads (keymap.md §2).
   const [entryMode, setEntryMode] = useState<EntryMode>(INITIAL_ENTRY_MODE);
+  // The chord letters held down, which override the Sticky mode (keymap.md §3).
+  const [held, setHeld] = useState<HeldLetters>(NONE_HELD);
+  // undefined while C and S are both held: digit presses then do nothing.
+  const activeMode = activeEntryMode(entryMode, held);
   const gridRef = useRef<HTMLDivElement>(null);
   const empty = isEmptyPuzzle(puzzle);
   // Each focus starts a 1-second flash (import.md §2). focusCount tells one
@@ -133,6 +138,25 @@ export function App({ store: givenStore }: AppProps) {
   }
 
   const toastPlacement = useToastPlacement(gridRef);
+
+  // A chord ends when its letter comes up, wherever focus is in the page and
+  // whatever modifiers are down, and every chord ends when the window loses
+  // focus, so a chord cannot get stuck (keymap.md §3, rules 4 and 7).
+  useEffect(() => {
+    function handleKeyUp(event: globalThis.KeyboardEvent) {
+      const letter = chordLetterFromCode(event.code);
+      if (letter !== undefined) setHeld((current) => releaseLetter(current, letter));
+    }
+    function handleBlur() {
+      setHeld(NONE_HELD);
+    }
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
 
   // App.css keys each scheme's tokens on the root element, and color-scheme
   // tells the browser to draw its own parts (scrollbars) to match. A layout
@@ -187,7 +211,16 @@ export function App({ store: givenStore }: AppProps) {
     if (digit !== undefined) {
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
-      setPuzzle((current) => enterDigit(current, selected, entryMode, digit));
+      if (activeMode !== undefined) setPuzzle((current) => enterDigit(current, selected, activeMode, digit));
+      return;
+    }
+    // C and S start a chord, by physical key and with or without Shift; a
+    // repeat starts none, since only a first press holds the letter (keymap.md §3).
+    const letter = chordLetterFromCode(event.code);
+    if (letter !== undefined) {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+      event.preventDefault();
+      setHeld((current) => holdLetter(current, letter));
       return;
     }
     // N cycles the Sticky mode, by physical key and with or without Shift,
@@ -258,9 +291,13 @@ export function App({ store: givenStore }: AppProps) {
           </div>
         ))}
       </div>
-      {/* Always shown, so the player can see what a digit key will do (keymap.md §2). */}
-      <p className="entry-mode-line" data-entry-mode={entryMode} aria-live="polite">
-        {ENTRY_MODE_NAMES[entryMode]}
+      {/*
+       * Always shown, so the player can see what a digit key will do: the
+       * chord's mode while its letter is held, else the Sticky mode (keymap.md §2).
+       * With C and S both held no mode applies, and the line keeps the Sticky mode.
+       */}
+      <p className="entry-mode-line" data-entry-mode={activeMode ?? entryMode} aria-live="polite">
+        {ENTRY_MODE_NAMES[activeMode ?? entryMode]}
       </p>
       {empty && (
         <p className="hint" id="grid-help">
