@@ -41,6 +41,16 @@ function pressAndReleaseCmd(code: 'MetaLeft' | 'MetaRight' = 'MetaLeft') {
   release('Meta', { code });
 }
 
+/**
+ * Ways a browser may report Cmd coming up. Each sends only one of `key` and `code`, so each is
+ * recognized on its own (an unidentified key or code stands in for the missing one).
+ */
+const CMD_RELEASES = [
+  ['key Meta alone', { key: 'Meta', code: '' }],
+  ['code MetaLeft alone', { key: 'Unidentified', code: 'MetaLeft' }],
+  ['code MetaRight alone', { key: 'Unidentified', code: 'MetaRight' }],
+] as const;
+
 function expectEntryMode(mode: 'fill' | 'center' | 'corner') {
   const lines = document.querySelectorAll<HTMLElement>('.entry-mode-line');
   expect(lines).toHaveLength(1);
@@ -50,11 +60,12 @@ function expectEntryMode(mode: 'fill' | 'center' | 'corner') {
 afterEach(cleanup);
 
 describe('Letter chords: letting go of Cmd ends every held chord (keymap.md §3 rule 7)', () => {
-  it.each(['MetaLeft', 'MetaRight'] as const)('holding C, letting go of Cmd (%s) reverts the line and the next digit uses the Sticky mode', (code) => {
+  it.each(CMD_RELEASES)('holding C, letting go of Cmd (%s) reverts the line and the next digit uses the Sticky mode', (_name, cmdUp) => {
     const { grid } = renderApp();
     holdC();
     expectEntryMode('center');
-    pressAndReleaseCmd(code);
+    press('Meta', { code: 'MetaLeft', metaKey: true });
+    release(cmdUp.key, { code: cmdUp.code });
     expectEntryMode('fill');
     pressDigit(5);
     expect(cellAt(grid, 0, 0)).toHaveAccessibleName('Row 1, column 1, placed 5');
@@ -125,15 +136,16 @@ describe('Letter chords: releasing the letter ends the chord whatever modifiers 
 });
 
 describe('Letter chords: the page-wide listeners are removed with the app', () => {
-  it('every keyup and blur listener added to window is removed on unmount', () => {
+  it('every listener the app adds to window, including keyup and blur, is removed on unmount', () => {
     const added = vi.spyOn(window, 'addEventListener');
     const removed = vi.spyOn(window, 'removeEventListener');
     try {
       const { unmount } = renderApp();
-      const ours = added.mock.calls.filter(([type]) => type === 'keyup' || type === 'blur');
-      expect(ours.map(([type]) => type).sort()).toEqual(['blur', 'keyup']);
+      const types = added.mock.calls.map(([type]) => type);
+      expect(types).toContain('keyup');
+      expect(types).toContain('blur');
       unmount();
-      for (const [type, listener] of ours)
+      for (const [type, listener] of added.mock.calls)
         expect(removed.mock.calls.some(([t, l]) => t === type && l === listener), `${type} listener removed`).toBe(true);
     } finally {
       added.mockRestore();
