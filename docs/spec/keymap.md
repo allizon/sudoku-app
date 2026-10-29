@@ -70,6 +70,16 @@ On a cell holding a ◆PLACED DIGIT, Delete/Backspace in center or corner mode (
 
 On a ◆GIVEN, neither Delete/Backspace nor `X` does anything.
 
+Rules:
+
+1. `X` is identified by physical key, like `N`, `C`, and `S` ([§2](#2-entry-modes), [§3](#3-letter-chords)). Shift + Delete, Backspace, or `X` clears as normal; Cmd/Ctrl/Alt + any of them does nothing and is left to the browser (so Cmd+X still cuts).
+2. If `C` and `S` are both held, no chord applies ([§3](#3-letter-chords), rule 6): Delete/Backspace does nothing, but `X` still clears everything, since it doesn't depend on the mode.
+3. Clearing doesn't end a held chord: hold `C`, press Delete, then 5 → 5 is toggled as a ◆CENTER MARK.
+4. Clearing a cell's last ◆CANDIDATEs leaves it empty, the same as toggling off its last mark.
+5. Clearing never changes the ◆STICKY MODE or the ◆SELECTED CELL.
+6. The app handles Delete, Backspace, and `X` itself on any cell it clears, so the browser's own action for the key doesn't run.
+7. Key auto-repeat needs no special handling: clearing an already-cleared cell changes nothing.
+
 ## 6. Undo / redo
 
 | Keys                                              | Action |
