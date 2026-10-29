@@ -77,7 +77,7 @@ Rules:
 3. Clearing doesn't end a held chord: hold `C`, press Delete, then 5 → 5 is toggled as a ◆CENTER MARK.
 4. Clearing a cell's last ◆CANDIDATEs leaves it empty, the same as toggling off its last mark.
 5. Clearing never changes the ◆STICKY MODE or the ◆SELECTED CELL.
-6. The app handles Delete, Backspace, and `X` itself on any cell it clears, so the browser's own action for the key doesn't run.
+6. While the grid has focus, the app handles Delete, Backspace, and `X` itself whenever no Cmd/Ctrl/Alt is held, whether or not anything is cleared (on a ◆GIVEN, an empty cell, or Delete/Backspace with `C` and `S` both held), so the browser's own action for the key never runs.
 7. Key auto-repeat needs no special handling: clearing an already-cleared cell changes nothing.
 
 ## 6. Undo / redo
