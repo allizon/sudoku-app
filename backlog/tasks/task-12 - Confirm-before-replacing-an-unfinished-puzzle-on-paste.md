@@ -4,6 +4,7 @@ title: Confirm before replacing an unfinished puzzle on paste
 status: To Do
 assignee: []
 created_date: '2026-10-25T22:31:00Z'
+updated_date: '2026-10-29T02:29:00Z'
 labels: []
 milestone: m-1
 dependencies:
@@ -30,3 +31,9 @@ Until now, paste is refused once a ◆PUZZLE is loaded (M0, milestones.md). Once
 - [ ] #6 A rejected paste (parse error) leaves the current ◆PUZZLE as it was and does not show the confirmation
 - [ ] #7 Rules live in src/core/ with unit tests; the confirmation flow is covered by UI tests
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+From task-8 UX review (2026-10-28): the grid's onKeyDown handles Backspace, Delete and X (and digits/letters). Any import text field or the replace-puzzle confirmation must not sit inside the grid element, or typing Backspace/X there would be caught and cancelled. Worth an acceptance criterion.
+<!-- SECTION:NOTES:END -->
