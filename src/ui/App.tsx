@@ -144,6 +144,13 @@ export function App({ store: givenStore }: AppProps) {
   // focus, so a chord cannot get stuck (keymap.md §3, rules 4 and 7).
   useEffect(() => {
     function handleKeyUp(event: globalThis.KeyboardEvent) {
+      // macOS reports no keyup for a letter let go while Cmd is down, so
+      // letting go of Cmd ends every chord; a letter still held is pressed
+      // again to resume (keymap.md §3, rule 7).
+      if (event.key === 'Meta' || event.code === 'MetaLeft' || event.code === 'MetaRight') {
+        setHeld(NONE_HELD);
+        return;
+      }
       const letter = chordLetterFromCode(event.code);
       if (letter !== undefined) setHeld((current) => releaseLetter(current, letter));
     }
