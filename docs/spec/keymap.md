@@ -42,14 +42,14 @@ Rules:
 2. `C` or `S` pressed and released with no digit does nothing.
 3. Key auto-repeat from a held letter is ignored. A repeat with no first press before it (e.g. returning to the window with `C` still held) starts no chord; pressing the letter again does.
 4. If the window loses focus, any held chord is released.
-5. A chord overrides the ◆STICKY MODE for that keypress only; the ◆STICKY MODE is unchanged afterwards. While the letter is held, the ◆ENTRY MODE LINE shows the chord's mode ([§2](#2-entry-modes)).
+5. A chord overrides the ◆STICKY MODE for digit presses made while the letter is held; the ◆STICKY MODE is unchanged afterwards. While the letter is held, the ◆ENTRY MODE LINE shows the chord's mode ([§2](#2-entry-modes)).
 6. If `C` and `S` are both held, no chord applies and digit presses do nothing. Releasing one of them while the other stays held brings back the other's chord.
-7. Like `N` ([§2](#2-entry-modes)), `C` and `S` are identified by physical key. Shift + `C`/`S` starts a chord; Cmd/Ctrl/Alt + `C`/`S` starts no chord and is left to the browser (so Cmd+C still copies). Releasing the letter ends the chord whatever modifiers are held at the time.
+7. Like `N` ([§2](#2-entry-modes)), `C` and `S` are identified by physical key. Shift + `C`/`S` starts a chord; Cmd/Ctrl/Alt + `C`/`S` starts no chord and is left to the browser (so Cmd+C still copies). Releasing the letter ends the chord whatever modifiers are held at the time. Letting go of Cmd also ends every held chord, because on macOS the browser doesn't report a letter released while Cmd is down; if the letter is in fact still held, press it again to resume.
 
 ## 4. Movement
 
 - Exactly one cell is selected at all times. A newly opened ◆PUZZLE selects row 1, column 1.
-- Arrow keys move the selection one cell.
+- Arrow keys move the selection one cell. While Shift is held they do nothing, chord or not (Shift + arrow is reserved; see [§9](#9-not-in-this-version)).
 - Movement wraps within the same row or column: right from column 9 → column 1 of the same row; down from row 9 → row 1 of the same column (and likewise for left and up).
 - Cells holding ◆GIVENs can be selected.
 - Letter keys do not move the selection.
