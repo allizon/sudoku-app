@@ -455,7 +455,7 @@ describe('On a Given, neither Delete/Backspace nor X does anything (AC #7)', () 
   );
 });
 
-describe('Modifiers on Delete, Backspace and X (spec gap, Q1)', () => {
+describe('Modifiers on Delete, Backspace and X (§5 rule 1)', () => {
   const KEYS = [...DELETE_KEYS, ['X', pressX]] as const;
   const BROWSER_MODIFIERS = [
     ['Cmd', { metaKey: true }],
@@ -487,7 +487,7 @@ describe('Modifiers on Delete, Backspace and X (spec gap, Q1)', () => {
   });
 });
 
-describe('With C and S both held (spec gap, Q3)', () => {
+describe('With C and S both held (§5 rule 2)', () => {
   it.each(DELETE_KEYS)('%s does nothing; releasing S brings back the C chord, and %s then clears Center marks', (_name, pressKey) => {
     const grid = renderWithBothMarks();
     toSticky('center'); // so a fallback to the Sticky mode would show
@@ -513,7 +513,7 @@ describe('With C and S both held (spec gap, Q3)', () => {
   });
 });
 
-describe('Clearing while a chord letter is held does not end the chord (spec gap, Q4)', () => {
+describe('Clearing while a chord letter is held does not end the chord (§5 rule 3)', () => {
   it.each(DELETE_KEYS)('holding C, %s then 5 toggles Center mark 5', (_name, pressKey) => {
     const grid = renderWithBothMarks();
     holdC();
@@ -535,5 +535,19 @@ describe('Clearing while a chord letter is held does not end the chord (spec gap
     releaseS();
     expect(cornerMarksText(cellAt(grid, 0, 0))).toBe('5');
     expect(centerMarksText(cellAt(grid, 0, 0))).toBeUndefined();
+  });
+});
+
+describe('Auto-repeat of Delete, Backspace and X still clears (§5 rule 7)', () => {
+  it.each(DELETE_KEYS)('an auto-repeated %s clears the Placed digit and is handled by the app', (_name, pressKey) => {
+    const grid = renderPlacedOverBothMarks();
+    expect(pressKey({ repeat: true })).toBe(false);
+    expectBothMarks(cellAt(grid, 0, 0));
+  });
+
+  it('an auto-repeated X clears everything and is handled by the app', () => {
+    const grid = renderPlacedOverBothMarks();
+    expect(pressX({ repeat: true })).toBe(false);
+    expectEmpty(cellAt(grid, 0, 0));
   });
 });
