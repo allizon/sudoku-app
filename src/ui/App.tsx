@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from 'react';
 import { loadColorScheme, saveColorScheme, type ColorScheme } from '../core/color-scheme';
 import { centerMarksOf, cornerMarksOf } from '../core/candidates';
+import { clearCell, clearLayer } from '../core/clear';
 import { activeEntryMode, holdLetter, NONE_HELD, releaseLetter, type HeldLetters } from '../core/chord';
 import { enterDigit, INITIAL_ENTRY_MODE, nextEntryMode, type EntryMode } from '../core/entry-mode';
 import { chordLetterFromCode, digitFromCode } from '../core/keys';
@@ -228,6 +229,18 @@ export function App({ store: givenStore }: AppProps) {
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
       setHeld((current) => holdLetter(current, letter));
+      return;
+    }
+    // Delete and Backspace clear one layer of the Selected cell, chosen by the
+    // active mode; with C and S both held no mode applies, so they do nothing.
+    // X clears everything, by physical key, whatever the mode. Shift is fine;
+    // Cmd, Ctrl and Alt are left to the browser, so Cmd+X still cuts. Clearing
+    // ends no chord and needs no repeat check (keymap.md §5).
+    if (event.key === 'Delete' || event.key === 'Backspace' || event.code === 'KeyX') {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      event.preventDefault();
+      if (event.code === 'KeyX') setPuzzle((current) => clearCell(current, selected));
+      else if (activeMode !== undefined) setPuzzle((current) => clearLayer(current, selected, activeMode));
       return;
     }
     // N cycles the Sticky mode, by physical key and with or without Shift,
