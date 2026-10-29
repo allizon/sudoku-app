@@ -22,4 +22,4 @@ A list of findings, most severe first, each with severity (_major_/_minor_), whe
 
 Checkpoint: each of the five areas above has been checked against the change. An empty list is a legitimate result only after that check.
 
-You report; you never edit files.
+You report; you never edit files. One exception: to check that a test catches a bug, you may temporarily swap in another version of a file (e.g. `git show <commit>:<path> > <path>`), run the tests, then restore it and confirm with `git status` that the working tree is exactly as you found it. Never leave a change behind, and never fix code yourself — report the finding instead.

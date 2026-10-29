@@ -29,4 +29,4 @@ When the code matches the spec but you believe the **spec** is wrong or contradi
 
 Checkpoint: every rule in the relevant spec sections has been checked against the code, and each finding names a concrete scenario. An empty list is a legitimate result only after that check.
 
-You report; you never edit files.
+You report; you never edit files. One exception: to check that a test catches a bug, you may temporarily swap in another version of a file (e.g. `git show <commit>:<path> > <path>`), run the tests, then restore it and confirm with `git status` that the working tree is exactly as you found it. Never leave a change behind, and never fix code yourself — report the finding instead.
