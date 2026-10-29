@@ -551,3 +551,35 @@ describe('Auto-repeat of Delete, Backspace and X still clears (§5 rule 7)', () 
     expectEmpty(cellAt(grid, 0, 0));
   });
 });
+
+describe('Delete, Backspace and X are handled even when nothing clears (§5 rule 6)', () => {
+  const KEYS = [...DELETE_KEYS, ['X', pressX]] as const;
+
+  it.each(KEYS)('%s on a Given is handled by the app and changes nothing', (_name, pressKey) => {
+    const grid = renderPuzzle();
+    pressRight();
+    pressRight();
+    expect(cellAt(grid, 0, 2)).toHaveAttribute('aria-selected', 'true');
+    const before = gridDrawn(grid);
+    expect(pressKey()).toBe(false);
+    expect(gridDrawn(grid)).toEqual(before);
+  });
+
+  it.each(KEYS)('%s on an empty cell is handled by the app and changes nothing', (_name, pressKey) => {
+    const grid = renderPuzzle();
+    const before = gridDrawn(grid);
+    expect(pressKey()).toBe(false);
+    expect(gridDrawn(grid)).toEqual(before);
+  });
+
+  it.each(DELETE_KEYS)('%s with C and S both held is handled by the app and changes nothing', (_name, pressKey) => {
+    const grid = renderWithBothMarks();
+    holdC();
+    holdS();
+    const before = gridDrawn(grid);
+    expect(pressKey()).toBe(false);
+    expect(gridDrawn(grid)).toEqual(before);
+    releaseS();
+    releaseC();
+  });
+});
