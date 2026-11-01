@@ -2,7 +2,7 @@
 // Ctrl+Z undo the last step, Shift+Cmd+Z, Shift+Ctrl+Z and Ctrl+Y redo it; each digit in a chord is
 // its own step; moving the selection (arrows or a click) and pressing N are not steps; undo restores
 // the cell exactly, Candidates hidden under a Placed digit included; and a new change after undoing
-// throws the redo history away. The step rules themselves are unit-tested in src/core/undo.test.ts;
+// throws the redo history away while the undo trail keeps the earlier steps. The step rules themselves are unit-tested in src/core/undo.test.ts;
 // here the same keys are pressed in the real app (AC #7).
 //
 // Same page assumptions as clearing.test.tsx and letter-chords.test.tsx: a Placed digit is the
@@ -275,9 +275,10 @@ describe('The undo and redo keys are handled by the app: their default action is
     pressDigit(5);
     pressCmdZ(); // the live undo, per the file's convention for "does nothing" tests
     expectEmpty(cellAt(grid, 0, 0));
-    pressCmdZ(); // brings the placement back, emptying the redo history again
+    pressKey(keypress); // the live redo; the redo stack is empty again
     expectPlaced(cellAt(grid, 0, 0), '5');
     expect(pressKey(keypress)).toBe(false); // nothing to redo, handled all the same
+    expectPlaced(cellAt(grid, 0, 0), '5'); // and the inert press changes nothing
   });
 });
 
@@ -433,7 +434,7 @@ describe('Undo restores the cell exactly, including Candidates hidden under a Pl
   });
 });
 
-describe('A new change after undoing discards the redo history (AC #6)', () => {
+describe('A new change after undoing discards the redo history, not the undo trail (AC #6; keymap.md §6, revised for TASK-16 by Alix)', () => {
   it('the redo keys change nothing once a new change was made', () => {
     const grid = renderPuzzle();
     pressDigit(5);
@@ -445,14 +446,15 @@ describe('A new change after undoing discards the redo history (AC #6)', () => {
     expectEmpty(cellAt(grid, 0, 0));
   });
 
-  it('the discarded change also stays undone: undoing the new change empties the grid', () => {
+  it('the undo trail survives that discard: undoing the new change and then again restores the earlier one', () => {
     const grid = renderPuzzle();
     pressDigit(5);
     pressCmdZ();
     pressDigit(3);
     pressCmdZ();
+    expectEmpty(cellAt(grid, 0, 1)); // the next undo removes the new change
     pressCmdZ();
-    expectEmpty(cellAt(grid, 0, 0));
+    expectPlaced(cellAt(grid, 0, 0), '5'); // a further undo restores the earlier change
     expectEmpty(cellAt(grid, 0, 1));
   });
 });

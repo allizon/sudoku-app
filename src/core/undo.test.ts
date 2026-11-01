@@ -1,7 +1,8 @@
 // Undo and redo: each change to the grid is one undo step, undo restores the changed cell exactly
 // (including Candidates hidden under a Placed digit), each digit pressed during a chord is its own
-// step, and a new change after undoing discards the redo history (TASK-16, AC #2, #3, #5, #6;
-// keymap.md §6). Selection moves and Sticky-mode changes bypass the history entirely (AC #4) —
+// step, and a new change after undoing discards the redo history while the undo trail keeps the
+// earlier changes (TASK-16, AC #2, #3, #5, #6; keymap.md §6, revised for TASK-16 by Alix). Selection
+// moves and Sticky-mode changes bypass the history entirely (AC #4) —
 // they are never passed through here, which the keys are shown to do in src/ui/undo.test.tsx.
 //
 // Pure core logic. Uses Vitest globals so this file imports only from src/core/ (AC #7).
@@ -231,18 +232,20 @@ describe('Each digit pressed during a chord is its own step (AC #3)', () => {
   });
 });
 
-describe('A new change after undoing discards the redo history (AC #6; keymap.md §6)', () => {
-  it('redo is undefined once a new change was made after undoing', () => {
+describe('A new change after undoing discards the redo history, not the undo trail (AC #6; keymap.md §6, revised for TASK-16 by Alix)', () => {
+  it('redo is undefined once a new change was made after undoing, while the undo trail keeps the earlier change', () => {
     const placed = apply(createEmptyPuzzle(), (p) => fillDigit(p, A, 5));
     const undone = requireUndo(placed.history, placed.puzzle);
     const changed = applyWithUndo(undone.history, undone.puzzle, (p) => fillDigit(p, B, 3));
-    expect(redo(changed.history, changed.puzzle)).toBeUndefined();
-    // The discarded change is gone for good: undoing thrice never brings the first digit back.
+    expect(redo(changed.history, changed.puzzle)).toBeUndefined(); // the redo history is discarded
+    // The undo trail is not (text-editor behavior): the next undo removes B...
     const undoneOnce = requireUndo(changed.history, changed.puzzle);
+    expect(placedAt(undoneOnce.puzzle, B)).toBeUndefined();
+    expect(placedAt(undoneOnce.puzzle, A)).toBeUndefined();
+    // ... and a further undo restores the earlier change, A.
     const undoneTwice = requireUndo(undoneOnce.history, undoneOnce.puzzle);
+    expect(placedAt(undoneTwice.puzzle, A)).toBe(5);
     expect(placedAt(undoneTwice.puzzle, B)).toBeUndefined();
-    expect(placedAt(undoneTwice.puzzle, A)).toBeUndefined();
-    expect(undo(undoneTwice.history, undoneTwice.puzzle)).toBeUndefined();
   });
 
   it('a no-op change after undoing does not discard the redo history, having changed nothing', () => {
