@@ -66,7 +66,7 @@ function selectedRingReach(viewport: Viewport): number {
   return Math.max(...spreads);
 }
 
-describe('Candidates layout: Corner marks sit against the cell edges, Center marks in the middle (AC #7)', () => {
+describe('Candidates layout: Corner marks in a 3×3 grid, Center marks in the middle (AC #7)', () => {
   it('a cell is a positioning container, so its Corner marks are placed against its own edges', () => {
     expect(need('.cell', 'position')).toBe('relative');
   });
@@ -76,28 +76,11 @@ describe('Candidates layout: Corner marks sit against the cell edges, Center mar
     expect(propertyOf(rules, '.cell .corner-marks', 'inset')).toBeDefined();
   });
 
-  it('each Corner mark is absolutely positioned', () => {
-    expect(need('.corner-mark', 'position')).toBe('absolute');
-  });
-
-  it.each([
-    [1, 'top', 'left'],
-    [2, 'top', 'right'],
-    [3, 'bottom', 'left'],
-    [4, 'bottom', 'right'],
-  ] as const)('Corner mark %i goes in the %s %s corner', (n, vertical, horizontal) => {
-    const selector = `.corner-mark:nth-child(${n})`;
-    expect(need(selector, vertical)).toBe('0');
-    expect(need(selector, horizontal)).toBe('0');
-  });
-
-  it.each([5, 6, 7, 8, 9])('Corner mark %i has a place of its own on an edge', (n) => {
-    const selector = `.corner-mark:nth-child(${n})`;
-    const vertical = propertyOf(rules, selector, 'top') ?? propertyOf(rules, selector, 'bottom');
-    const horizontal = propertyOf(rules, selector, 'left') ?? propertyOf(rules, selector, 'right');
-    expect(vertical, `${selector} top/bottom`).toBeDefined();
-    expect(horizontal, `${selector} left/right`).toBeDefined();
-    expect([vertical, horizontal]).toContain('0');
+  it('.corner-marks are a 3×3 grid, each mark centered in its cell', () => {
+    expect(need('.cell .corner-marks', 'display')).toBe('grid');
+    expect(need('.cell .corner-marks', 'grid-template-columns')).toBe('repeat(3, 1fr)');
+    expect(need('.cell .corner-marks', 'grid-template-rows')).toBe('repeat(3, 1fr)');
+    expect(need('.cell .corner-marks', 'place-items')).toBe('center');
   });
 
   it('.center-marks are not absolutely positioned: the cell centers them', () => {
@@ -124,10 +107,10 @@ describe('Candidates layout: Corner marks stay clear of the Selected cell ring (
 
 /*
  * Where each Corner mark lands, modelled from App.css: the .corner-marks box
- * (the cell less its inset on each side), each .corner-mark:nth-child(n) placed
- * by top/bottom/left/right (0 or a percentage of the box) and nudged by
- * translate (a percentage of its own size). A digit's box is assumed to be
- * 0.6em wide (system-ui digits are about 0.55–0.6em) and one line-height tall.
+ * (the cell less its inset on each side) is a 3×3 grid. Mark n fills the nth
+ * cell in row-major order, centered by place-items: center. A digit's box is
+ * assumed to be 0.6em wide (system-ui digits are about 0.55–0.6em) and one
+ * line-height tall.
  */
 const DIGIT_WIDTH_EM = 0.6;
 
@@ -140,22 +123,12 @@ function cornerMarkBoxes(viewport: Viewport): Box[] {
   const font = length(need('.cell .corner-marks', 'font-size'), viewport);
   const width = DIGIT_WIDTH_EM * font;
   const height = Number(need('.cell .corner-marks', 'line-height')) * font;
-  /** A position offset: "0", a percentage of the box, or a length. */
-  const offset = (value: string) => (value.endsWith('%') ? (parseFloat(value) / 100) * size : length(value, viewport));
-  /** A translate part: "0" or a percentage of the mark's own size. */
-  const shift = (value: string | undefined, own: number) =>
-    value === undefined || value === '0' ? 0 : value.endsWith('%') ? (parseFloat(value) / 100) * own : length(value, viewport);
+  const gridCell = size / 3;
   return [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
-    const selector = `.corner-mark:nth-child(${n})`;
-    const at = (property: string) => propertyOf(rules, selector, property);
-    const [tx, ty] = (at('translate') ?? '0 0').split(/\s+/);
-    const left = at('left');
-    const right = at('right');
-    const top = at('top');
-    const bottom = at('bottom');
-    if ((left ?? right) === undefined || (top ?? bottom) === undefined) throw new Error(`${selector} is not placed`);
-    const x = (left !== undefined ? offset(left) : size - offset(right ?? '0') - width) + shift(tx, width);
-    const y = (top !== undefined ? offset(top) : size - offset(bottom ?? '0') - height) + shift(ty, height);
+    const row = Math.floor((n - 1) / 3);
+    const col = (n - 1) % 3;
+    const x = col * gridCell + (gridCell - width) / 2;
+    const y = row * gridCell + (gridCell - height) / 2;
     return { left: x, top: y, right: x + width, bottom: y + height };
   });
 }

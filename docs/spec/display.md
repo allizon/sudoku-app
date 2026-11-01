@@ -23,7 +23,7 @@ Terms (◆GIVEN, ◆CANDIDATE, ◆CENTER MARK, ◆CORNER MARK, …) are defined 
 
 - ◆CENTER MARKs and ◆CORNER MARKs are each drawn in ascending order, whatever order they were entered in. The same digit can be both a ◆CENTER MARK and a ◆CORNER MARK in one cell.
 - ◆CENTER MARKs are drawn small in the middle of the cell and wrap onto a second line when they don't fit on one.
-- ◆CORNER MARKs are drawn smaller still, filling the four corners first (top-left, top-right, bottom-left, bottom-right), then the middles of the top, bottom, left, and right edges; a ninth sits along the top edge. They stay clear of the ◆SELECTED CELL's ring, and on very small cells they shrink so all nine fit without overlapping.
+- ◆CORNER MARKs are drawn smaller still, in a 3×3 grid so each digit has a fixed home: 1 top-left, 2 top-middle, 3 top-right, 4 middle-left, 5 center, 6 middle-right, 7 bottom-left, 8 bottom-middle, 9 bottom-right. They stay clear of the ◆SELECTED CELL's ring, and on very small cells they shrink so all nine fit without overlapping.
 - The two kinds of mark have their own color tokens but may share a color; position and size tell them apart.
 - ◆CANDIDATEs hidden under a ◆PLACED DIGIT are not drawn and are not named to screen readers. A cell's screen-reader name lists its marks, e.g. "center marks 1 4 7, corner marks 2 8".
 
