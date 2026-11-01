@@ -1,32 +1,40 @@
-// Undo and redo (keymap.md §6): every grid change is one undo step, undo
-// restores the changed cell exactly, redo reverses an undo, and a new change
-// after undoing discards the redo history while a change that alters nothing
-// records nothing at all.
+// Undo and redo (keymap.md §6): every grid change is one undo step, undo takes
+// the change back exactly, redo puts an undone change back, and a new change
+// after undoing discards the redo history — while the undo trail keeps the
+// changes made before it: undoing takes each new change back one by one, and
+// beyond the last of them each discarded change's result comes back again
+// (Alix, TASK-16, text-editor behavior).
 //
-// A step is the set of cells the change altered, each with the Cell it
-// replaced. Undo swaps those Cells back in; redo swaps in what the cells
-// held when they were undone. Cells are immutable, so holding a Cell object
-// holds the cell's whole state: a Placed digit's hidden Candidates come back
-// with it (keymap.md §6).
+// A step is the set of cells the change altered, each with the Cell it held on
+// both sides of the change. Cells are immutable, so holding a Cell holds the
+// cell's whole state: a Placed digit's hidden Candidates come back with it
+// (keymap.md §6).
 //
-// The two stacks together are one trail through the cell states. Undo moves
-// the top step to the top of the redo side; a new change after undoing cuts
-// the undone steps off the redo side and lays them back onto the undo side
-// as each cell's current state, so undoing further walks the trail
-// underneath the discarded branch without ever bringing it back (keymap.md §6).
+// Both stacks hold reversible steps: undo pops the last step off the undo
+// stack and applies its earlier Cells, redo pops off the redo stack and
+// applies its later Cells, and the step moves to the other stack. When a
+// change discards a non-empty redo stack, each discarded step is laid back
+// onto the undo stack with its two sides exchanged: undoing it applies the
+// redone side, which brings the change's result back. That keeps every step
+// reversible in both directions — should such a step ever be redone again, it
+// would take its result back out the way the undo originally did.
+//
+// Invariant, why no "the step's applied side matches the board" guard is
+// needed: every board change passes through the three functions below, so a
+// step is only ever popped when its applied side is really on the board.
 import { replaceCell, type Candidates, type Cell, type Digit, type Puzzle } from './puzzle';
 import type { Position } from './selection';
 
-/** One cell a step alters: its position and the Cell the change replaced. */
-type Swap = { readonly position: Position; readonly cell: Cell };
+/** One cell a step alters: its position, and the Cell it held before and after. */
+type Swap = { readonly position: Position; readonly before: Cell; readonly after: Cell };
 
-/** One undo step: every cell one grid change altered, with their earlier Cells. */
+/** One undo step: every cell one grid change altered, with their Cells on both sides. */
 type Step = { readonly changes: readonly Swap[] };
 
 /**
- * The undo and redo stacks, newest last. Each entry is one step: undo pops
- * the last step off `undoStack`, redo pops off `redoStack`, and either appends
- * the reverse step to the other stack.
+ * The undo and redo stacks, newest last. Undo pops the last step off
+ * `undoStack` and applies its earlier Cells; redo pops off `redoStack` and
+ * applies its later Cells; the step moves to the other stack.
  */
 export type History = {
   readonly undoStack: readonly Step[];
@@ -42,20 +50,19 @@ export type Applied = { readonly puzzle: Puzzle; readonly history: History };
 /**
  * Runs a change on the Puzzle, recording it as one undo step. A change that
  * alters nothing — a digit on a Given, Delete on an empty cell — records no
- * step and leaves the history as it was, so the redo history survives a
- * no-op (keymap.md §5, §7). A change that alters something discards the redo
- * history (keymap.md §6): its steps come back as one undo step each, holding
- * each cell's state as it stands now, so a discarded undone change neither
- * redoes again nor vanishes from the trail. The placement + Elimination
- * bundling of feedback.md §3 is a later ticket.
+ * step and leaves the history as it was, so a no-op never discards redo
+ * history (keymap.md §5, §7). A change that alters something discards the
+ * redo history (keymap.md §6): its steps come back onto the undo stack with
+ * their sides exchanged, so the earlier changes stay reachable by undo.
+ * The placement + Elimination bundling of feedback.md §3 is a later ticket.
  */
 export function applyWithUndo(history: History, puzzle: Puzzle, change: (current: Puzzle) => Puzzle): Applied {
   const next = change(puzzle);
   const swaps = cellsChanged(puzzle, next);
   if (swaps.length === 0) return { puzzle: next, history };
-  // Each discarded redo step comes back as its cells' current state, oldest
-  // undo last so undoing walks back through them in the order they were undone.
-  const laidBack = history.redoStack.map((step) => swappedBack(puzzle, step.changes));
+  // Oldest discarded step last: the next undo takes the new change back, then
+  // the most recently undone one, then the one before it.
+  const laidBack = history.redoStack.map(swapSides);
   return {
     puzzle: next,
     history: { undoStack: [...history.undoStack, ...laidBack, { changes: swaps }], redoStack: [] },
@@ -72,10 +79,10 @@ export function undo(history: History, puzzle: Puzzle): Applied | undefined {
   const step = history.undoStack[history.undoStack.length - 1];
   if (step === undefined) return undefined;
   return {
-    puzzle: swappedIn(puzzle, step.changes),
+    puzzle: swappedTo(puzzle, step.changes, 'before'),
     history: {
       undoStack: history.undoStack.slice(0, -1),
-      redoStack: [...history.redoStack, swappedBack(puzzle, step.changes)],
+      redoStack: [...history.redoStack, step],
     },
   };
 }
@@ -85,15 +92,15 @@ export function redo(history: History, puzzle: Puzzle): Applied | undefined {
   const step = history.redoStack[history.redoStack.length - 1];
   if (step === undefined) return undefined;
   return {
-    puzzle: swappedIn(puzzle, step.changes),
+    puzzle: swappedTo(puzzle, step.changes, 'after'),
     history: {
-      undoStack: [...history.undoStack, swappedBack(puzzle, step.changes)],
+      undoStack: [...history.undoStack, step],
       redoStack: history.redoStack.slice(0, -1),
     },
   };
 }
 
-/** The cells the change altered: those that differ, with what they were before. */
+/** The cells the change altered: those that differ, with what they held before and after. */
 function cellsChanged(before: Puzzle, after: Puzzle): readonly Swap[] {
   const swaps: Swap[] = [];
   for (let row = 0; row < before.cells.length; row += 1) {
@@ -103,26 +110,23 @@ function cellsChanged(before: Puzzle, after: Puzzle): readonly Swap[] {
       const cell = beforeRow[column];
       const next = afterRow[column];
       if (cell !== undefined && next !== undefined && !cellsEqual(cell, next)) {
-        swaps.push({ position: { row, column }, cell });
+        swaps.push({ position: { row, column }, before: cell, after: next });
       }
     }
   }
   return swaps;
 }
 
-/** The Puzzle with each Swap's Cell put back at its position. */
-function swappedIn(puzzle: Puzzle, swaps: readonly Swap[]): Puzzle {
-  return swaps.reduce((current, swap) => replaceCell(current, swap.position, swap.cell), puzzle);
+/** A step with its two sides exchanged, as a change lays a discarded step back. */
+function swapSides(step: Step): Step {
+  return {
+    changes: step.changes.map((swap) => ({ position: swap.position, before: swap.after, after: swap.before })),
+  };
 }
 
-/** The step that takes `swaps` back: each position's Cell as it stands now. */
-function swappedBack(puzzle: Puzzle, swaps: readonly Swap[]): Step {
-  return {
-    changes: swaps.flatMap((swap) => {
-      const cell = puzzle.cells[swap.position.row]?.[swap.position.column];
-      return cell === undefined ? [] : [{ position: swap.position, cell }];
-    }),
-  };
+/** The Puzzle with each Swap's Cell of that side put back at its position. */
+function swappedTo(puzzle: Puzzle, swaps: readonly Swap[], side: 'before' | 'after'): Puzzle {
+  return swaps.reduce((current, swap) => replaceCell(current, swap.position, swap[side]), puzzle);
 }
 
 /** Whether two Cells hold exactly the same thing: the same kind, and the same contents. */
