@@ -98,7 +98,9 @@ Rules:
 
 - Undo restores the cell exactly as it was, including hidden ◆CANDIDATEs and ◆CORNER MARKs (e.g. undoing `X` brings everything back).
 - Undo/redo history is saved with the ◆PUZZLE and survives a page refresh.
-- Making a new change after undoing discards the redo history.
+- Making a new change after undoing discards the redo history. The earlier changes stay undoable: place A, undo, place B, and undo removes B, with a further undo bringing A back.
+- A key press that changes nothing (e.g. a digit on a ◆GIVEN) is not a step, and does not discard the redo history.
+- While the grid has focus, the app handles the undo/redo keys itself and calls `preventDefault()` on them, whether or not anything is undone or redone, so the browser's own undo/redo never runs ([§5](#5-clearing), rule 6).
 
 ## 7. Interaction with Givens and placed digits
 
