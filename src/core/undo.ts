@@ -10,18 +10,23 @@
 // cell's whole state: a Placed digit's hidden Candidates come back with it
 // (keymap.md §6).
 //
-// Both stacks hold reversible steps: undo pops the last step off the undo
-// stack and applies its earlier Cells, redo pops off the redo stack and
-// applies its later Cells, and the step moves to the other stack. When a
-// change discards a non-empty redo stack, each discarded step is laid back
-// onto the undo stack with its two sides exchanged: undoing it applies the
-// redone side, which brings the change's result back. That keeps every step
-// reversible in both directions — should such a step ever be redone again, it
-// would take its result back out the way the undo originally did.
+// Both stacks hold the same kind of step: undo pops the last step off the
+// undo stack and applies each Swap's earlier Cell, redo pops off the redo
+// stack and applies its later Cell, and the step moves to the other stack.
+// When a change discards a non-empty redo stack, its steps are laid back onto
+// the undo stack with the two sides of every Swap exchanged, oldest change
+// deepest: the next undo takes the new change back, and further undos bring
+// the discarded changes' results back again, newest change first — each pop
+// applies the redone side of one laid-back step. That keeps every step
+// reversible in both directions — should such a step ever be redone
+// again, it would take its result back out.
 //
-// Invariant, why no "the step's applied side matches the board" guard is
-// needed: every board change passes through the three functions below, so a
-// step is only ever popped when its applied side is really on the board.
+// Why no "the applied side matches the board" guard is needed: every Swap
+// stores both sides as absolute Cell snapshots, so applying a side never
+// reads the board — it overwrites the recorded positions with the recorded
+// Cells. Correctness needs no board state to match anything, only that pops
+// line up in the order the trails are built, which the functions below
+// construct.
 import { replaceCell, type Candidates, type Cell, type Digit, type Puzzle } from './puzzle';
 import type { Position } from './selection';
 
@@ -60,9 +65,10 @@ export function applyWithUndo(history: History, puzzle: Puzzle, change: (current
   const next = change(puzzle);
   const swaps = cellsChanged(puzzle, next);
   if (swaps.length === 0) return { puzzle: next, history };
-  // Oldest discarded step last: the next undo takes the new change back, then
-  // the most recently undone one, then the one before it.
-  const laidBack = history.redoStack.map(swapSides);
+  // Oldest change deepest (the redo stack grows newest-undone on top, so it
+  // lays back reversed): the next undo takes the new change back, and further
+  // undos restore the discarded changes' results, newest change first.
+  const laidBack = [...history.redoStack].reverse().map(swapSides);
   return {
     puzzle: next,
     history: { undoStack: [...history.undoStack, ...laidBack, { changes: swaps }], redoStack: [] },

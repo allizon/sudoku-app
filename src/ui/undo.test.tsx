@@ -280,6 +280,18 @@ describe('The undo and redo keys are handled by the app: their default action is
     expect(pressKey(keypress)).toBe(false); // nothing to redo, handled all the same
     expectPlaced(cellAt(grid, 0, 0), '5'); // and the inert press changes nothing
   });
+
+  // Exactly one of Cmd, Ctrl makes an undo (or redo) press; both held together
+  // is a command combination the app leaves to the browser (Alix settled this
+  // for TASK-16), so the app neither prevents the press nor undoes with it.
+  it('Cmd and Ctrl together on Z is not the undo press: it is left to the browser', () => {
+    const grid = renderPuzzle();
+    pressDigit(5);
+    expectPlaced(cellAt(grid, 0, 0), '5');
+    const notPrevented = pressKey({ key: 'z', code: 'KeyZ', init: { metaKey: true, ctrlKey: true } });
+    expect(notPrevented).toBe(true);
+    expectPlaced(cellAt(grid, 0, 0), '5'); // nothing was undone; the press was not the app's
+  });
 });
 
 describe('Each digit pressed during a chord is its own step (AC #3)', () => {

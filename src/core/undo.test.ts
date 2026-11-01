@@ -255,4 +255,28 @@ describe('A new change after undoing discards the redo history, not the undo tra
     const redone = requireRedo(noOp.history, noOp.puzzle);
     expect(redone.puzzle).toEqual(placed.puzzle);
   });
+
+  // Extends the settled editor semantics above to a trail two steps deep:
+  // place A, place B, undo, undo, then place C. The next undo removes C, and
+  // further undos bring the discarded changes' results back, newest change
+  // first (keymap.md §6, as Alix settled for TASK-16).
+  it('a change after two undos keeps the two-step trail: the next undo removes the new change, then B comes back, then A', () => {
+    const placedA = apply(createEmptyPuzzle(), (p) => fillDigit(p, A, 5));
+    const placedB = applyWithUndo(placedA.history, placedA.puzzle, (p) => fillDigit(p, B, 3));
+    const undone = requireUndo(placedB.history, placedB.puzzle);
+    const undoneTwice = requireUndo(undone.history, undone.puzzle);
+    const changed = applyWithUndo(undoneTwice.history, undoneTwice.puzzle, (p) => fillDigit(p, A, 7));
+    // The next undo removes the new change, C.
+    const undoneOnce = requireUndo(changed.history, changed.puzzle);
+    expect(placedAt(undoneOnce.puzzle, A)).toBeUndefined();
+    expect(placedAt(undoneOnce.puzzle, B)).toBeUndefined();
+    // Then the discarded results come back, newest change first: B, then A.
+    const undoneTwiceOver = requireUndo(undoneOnce.history, undoneOnce.puzzle);
+    expect(placedAt(undoneTwiceOver.puzzle, B)).toBe(3);
+    expect(placedAt(undoneTwiceOver.puzzle, A)).toBeUndefined();
+    const undoneThrice = requireUndo(undoneTwiceOver.history, undoneTwiceOver.puzzle);
+    expect(placedAt(undoneThrice.puzzle, A)).toBe(5);
+    expect(placedAt(undoneThrice.puzzle, B)).toBe(3);
+    expect(undo(undoneThrice.history, undoneThrice.puzzle)).toBeUndefined(); // the trail ends here
+  });
 });

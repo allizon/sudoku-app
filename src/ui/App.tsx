@@ -260,14 +260,15 @@ export function App({ store: givenStore }: AppProps) {
       else if (activeMode !== undefined) changePuzzle((current) => clearLayer(current, selected, activeMode));
       return;
     }
-    // Undo and redo the last grid change, by physical key: Z with Cmd or Ctrl
-    // undoes, Z with those and Shift redoes, and Y with Ctrl redoes (keymap.md
-    // §6). Any other command combination of those keys is left to the browser.
+    // Undo and redo the last grid change, by physical key: Z with Cmd
+    // (macOS) or Ctrl undoes, Z with that and Shift redoes, and Y with Ctrl
+    // redoes (keymap.md §6). With both Cmd and Ctrl held, or any other
+    // command combination of those keys, they are left to the browser.
     // The app handles the keys itself, preventDefault included, whether or not
     // anything is undone or redone (keymap.md §5, rule 6, likewise for §6),
     // so the browser's own undo/redo never runs. Undo and redo touch history
     // only: they do not move the Selection or the Sticky mode (§6).
-    if (event.code === 'KeyZ' && (event.metaKey || event.ctrlKey) && !event.altKey) {
+    if (event.code === 'KeyZ' && event.metaKey !== event.ctrlKey && !event.altKey) {
       event.preventDefault();
       const applied = event.shiftKey ? redo(history, puzzle) : undo(history, puzzle);
       if (applied !== undefined) setGame(applied);
