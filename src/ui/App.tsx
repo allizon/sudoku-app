@@ -8,6 +8,7 @@ import { chordLetterFromCode, digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
 import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { moveSelection, type Direction, type Position } from '../core/selection';
+import { applyWithUndo, emptyHistory, redo, undo, type History } from '../core/undo';
 import type { Store } from '../core/store';
 import { createBrowserStore } from '../storage/browser-store';
 import { useToastPlacement } from './toast-placement';
@@ -108,9 +109,14 @@ type AppProps = {
 
 export function App({ store: givenStore }: AppProps) {
   const [store] = useState<Store>(() => givenStore ?? createBrowserStore());
-  // The app starts light unless dark was chosen; the system setting is not used (display.md §2).
+  // The color scheme: the app starts light unless dark was chosen; the system
+  // setting is not used (display.md §2).
   const [colorScheme, setColorScheme] = useState<ColorScheme>(() => loadColorScheme(store));
-  const [puzzle, setPuzzle] = useState<Puzzle>(createEmptyPuzzle);
+  // The Puzzle in progress and its undo and redo history (keymap.md §6).
+  const [{ puzzle, history }, setGame] = useState<{ puzzle: Puzzle; history: History }>(() => ({
+    puzzle: createEmptyPuzzle(),
+    history: emptyHistory,
+  }));
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
   // Exactly one cell is always selected; a Puzzle opens at row 1, column 1 (keymap.md §4).
   const [selected, setSelected] = useState<Position>({ row: 0, column: 0 });
@@ -139,6 +145,16 @@ export function App({ store: givenStore }: AppProps) {
   }
 
   const toastPlacement = useToastPlacement(gridRef);
+
+  /**
+   * A grid change: one undo step for it, none for a change that alters
+   * nothing, which keeps the redo history (keymap.md §6). Selection and
+   * Sticky-mode changes never come through here, so moving or pressing N
+   * between two changes is no step, and a change cannot move either one.
+   */
+  function changePuzzle(change: (current: Puzzle) => Puzzle) {
+    setGame(({ puzzle, history }) => applyWithUndo(history, puzzle, change));
+  }
 
   // A chord ends when its letter comes up, wherever focus is in the page and
   // whatever modifiers are down, and every chord ends when the window loses
@@ -203,9 +219,10 @@ export function App({ store: givenStore }: AppProps) {
     }
     const result = parsePuzzle(event.clipboardData.getData('text/plain'));
     if (result.ok) {
-      setPuzzle(result.puzzle);
-      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4) and
-      // starts in fill mode (import.md §5).
+      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4), starts
+      // in fill mode (import.md §5), and has nothing to undo: its undo
+      // history starts empty.
+      setGame({ puzzle: result.puzzle, history: emptyHistory });
       setSelected({ row: 0, column: 0 });
       setEntryMode(INITIAL_ENTRY_MODE);
     } else for (const error of result.errors) showToast('parse-error', error.message);
@@ -219,7 +236,7 @@ export function App({ store: givenStore }: AppProps) {
     if (digit !== undefined) {
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
-      if (activeMode !== undefined) setPuzzle((current) => enterDigit(current, selected, activeMode, digit));
+      if (activeMode !== undefined) changePuzzle((current) => enterDigit(current, selected, activeMode, digit));
       return;
     }
     // C and S start a chord, by physical key and with or without Shift; a
@@ -239,8 +256,27 @@ export function App({ store: givenStore }: AppProps) {
     if (event.key === 'Delete' || event.key === 'Backspace' || event.code === 'KeyX') {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       event.preventDefault();
-      if (event.code === 'KeyX') setPuzzle((current) => clearCell(current, selected));
-      else if (activeMode !== undefined) setPuzzle((current) => clearLayer(current, selected, activeMode));
+      if (event.code === 'KeyX') changePuzzle((current) => clearCell(current, selected));
+      else if (activeMode !== undefined) changePuzzle((current) => clearLayer(current, selected, activeMode));
+      return;
+    }
+    // Undo and redo the last grid change, by physical key: Z with Cmd or Ctrl
+    // undoes, Z with those and Shift redoes, and Y with Ctrl redoes (keymap.md
+    // §6). Any other command combination of those keys is left to the browser.
+    // The app handles the keys itself, preventDefault included, whether or not
+    // anything is undone or redone (keymap.md §5, rule 6, likewise for §6),
+    // so the browser's own undo/redo never runs. Undo and redo touch history
+    // only: they do not move the Selection or the Sticky mode (§6).
+    if (event.code === 'KeyZ' && (event.metaKey || event.ctrlKey) && !event.altKey) {
+      event.preventDefault();
+      const applied = event.shiftKey ? redo(history, puzzle) : undo(history, puzzle);
+      if (applied !== undefined) setGame(applied);
+      return;
+    }
+    if (event.code === 'KeyY' && event.ctrlKey && !event.shiftKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      const applied = redo(history, puzzle);
+      if (applied !== undefined) setGame(applied);
       return;
     }
     // N cycles the Sticky mode, by physical key and with or without Shift,
