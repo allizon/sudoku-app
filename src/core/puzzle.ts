@@ -90,8 +90,14 @@ export function isEmptyPuzzle(puzzle: Puzzle): boolean {
  * A Puzzle with only Givens (or an empty Puzzle) has no player input.
  * import.md §5; TASK-12 AC #1, #5.
  */
-export function hasPlayerInput(_puzzle: Puzzle): boolean {
-  throw new Error('hasPlayerInput: not implemented');
+export function hasPlayerInput(puzzle: Puzzle): boolean {
+  return puzzle.cells.some((row) =>
+    row.some((cell) => {
+      if (cell.kind === 'placed') return true;
+      if (cell.kind === 'candidates') return true;
+      return false;
+    }),
+  );
 }
 
 /**

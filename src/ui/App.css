@@ -50,8 +50,6 @@
   --toast-text: #fff;
   /* Parse errors: white on this is 6.6:1. */
   --toast-background: #b42318;
-  /* The refusal, a muted red: white on this is 6.1:1. */
-  --toast-refusal-background: #9b4a44;
   /* On the page background, 6.7:1. */
   --hint-text: #595959;
   /* The Entry mode line, on the page background: gray 6.7:1, blue 5.6:1, green 5.2:1. */
@@ -62,6 +60,7 @@
   --center-mark: #555b66;
   --corner-mark: #555b66;
   --toast-shadow: rgb(0 0 0 / 25%);
+  --overlay-background: rgb(0 0 0 / 40%);
   --toggle-text: #222;
   --toggle-background: #fff;
   --toggle-border: #8a8a8a;
@@ -105,8 +104,6 @@
   --toast-text: #fff;
   /* White on this is 6.5:1. */
   --toast-background: #b3261e;
-  /* White on this is 6.6:1. */
-  --toast-refusal-background: #8c4a45;
   /* 6.9:1 against the page. */
   --hint-text: #9aa1ad;
   /* The Entry mode line, on the page: gray 7.6:1, blue 7.4:1, green 8.7:1. */
@@ -117,6 +114,7 @@
   --center-mark: #aab1bd;
   --corner-mark: #aab1bd;
   --toast-shadow: rgb(0 0 0 / 50%);
+  --overlay-background: rgb(0 0 0 / 50%);
   --toggle-text: #e1e4e9;
   --toggle-background: #23262e;
   --toggle-border: #7a8190;
@@ -326,10 +324,9 @@ body {
 }
 
 /*
- * Parse errors and the refusal, stacked (milestones.md M0). App measures the
- * room beside the grid and sets data-placement (toast-placement.ts), starting
- * at "below", which never covers the grid. Only the two placement rules set
- * where the stack goes.
+ * Parse errors, stacked. App measures the room beside the grid and sets
+ * data-placement (toast-placement.ts), starting at "below", which never
+ * covers the grid. Only the two placement rules set where the stack goes.
  */
 .toasts {
   position: fixed;
@@ -382,8 +379,57 @@ body {
   cursor: pointer;
 }
 
-.toast[data-kind='refusal'] {
-  background: var(--toast-refusal-background);
+/*
+ * Replace-puzzle confirmation (import.md §5). Centered overlay with the
+ * dialog outside the grid so grid key handlers do not intercept typing.
+ */
+.import-confirmation {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-background);
+}
+
+.import-confirmation-content {
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border-radius: 8px;
+  background: var(--page-background);
+  color: var(--page-text);
+  box-shadow: 0 4px 16px var(--toast-shadow);
+}
+
+.import-confirmation-content h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.import-confirmation-content p {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.import-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.import-confirmation-actions button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--toggle-border);
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.import-confirmation-actions button[type='submit'] {
+  background: var(--selected-ring);
+  color: var(--toast-text);
+  border-color: var(--selected-ring);
 }
 
 /*

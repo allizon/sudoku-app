@@ -6,7 +6,7 @@ import { activeEntryMode, holdLetter, NONE_HELD, releaseLetter, type HeldLetters
 import { enterDigit, INITIAL_ENTRY_MODE, nextEntryMode, type EntryMode } from '../core/entry-mode';
 import { chordLetterFromCode, digitFromCode } from '../core/keys';
 import { parsePuzzle } from '../core/parse';
-import { boxOf, createEmptyPuzzle, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
+import { boxOf, createEmptyPuzzle, hasPlayerInput, isEmptyPuzzle, type Cell, type Puzzle } from '../core/puzzle';
 import { moveSelection, type Direction, type Position } from '../core/selection';
 import { applyWithUndo, emptyHistory, redo, undo, type History } from '../core/undo';
 import type { Store } from '../core/store';
@@ -14,9 +14,6 @@ import { createBrowserStore } from '../storage/browser-store';
 import { useToastPlacement } from './toast-placement';
 import { Toasts, useToasts } from './Toasts';
 import './App.css';
-
-/** Shown when a paste arrives while a Puzzle is loaded (milestones.md M0). */
-const REFUSAL = 'A puzzle is already loaded — reload the page to start a new one.';
 
 /** How long the grid's focus flash lasts, matching its animation in App.css. */
 const FLASH_MS = 1_000;
@@ -117,6 +114,8 @@ export function App({ store: givenStore }: AppProps) {
     puzzle: createEmptyPuzzle(),
     history: emptyHistory,
   }));
+  // A parsed Puzzle waiting for the player to confirm replacing the current one.
+  const [pendingImport, setPendingImport] = useState<Puzzle | null>(null);
   const { toasts, showToast, dismissToast, dismissAllToasts } = useToasts();
   // Exactly one cell is always selected; a Puzzle opens at row 1, column 1 (keymap.md §4).
   const [selected, setSelected] = useState<Position>({ row: 0, column: 0 });
@@ -209,23 +208,26 @@ export function App({ store: givenStore }: AppProps) {
     gridRef.current?.focus();
   }, []);
 
-  // Paste imports only onto an empty grid; a loaded Puzzle is never replaced
-  // in M0, and a rejected paste leaves the grid as it was.
+  // Paste imports onto an empty grid directly, asks before replacing a Puzzle
+  // the player has worked on, and loads a Puzzle of only Givens without asking.
+  // A rejected paste leaves the grid as it was and never shows the confirmation.
   function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
     event.preventDefault();
-    if (!empty) {
-      showToast('refusal', REFUSAL);
+    const result = parsePuzzle(event.clipboardData.getData('text/plain'));
+    if (!result.ok) {
+      for (const error of result.errors) showToast('parse-error', error.message);
       return;
     }
-    const result = parsePuzzle(event.clipboardData.getData('text/plain'));
-    if (result.ok) {
-      // A newly opened Puzzle selects row 1, column 1 (keymap.md §4), starts
-      // in fill mode (import.md §5), and has nothing to undo: its undo
-      // history starts empty.
+    // A newly opened Puzzle selects row 1, column 1 (keymap.md §4), starts
+    // in fill mode (import.md §5), and has nothing to undo: its undo history
+    // starts empty.
+    if (empty || !hasPlayerInput(puzzle)) {
       setGame({ puzzle: result.puzzle, history: emptyHistory });
       setSelected({ row: 0, column: 0 });
       setEntryMode(INITIAL_ENTRY_MODE);
-    } else for (const error of result.errors) showToast('parse-error', error.message);
+    } else {
+      setPendingImport(result.puzzle);
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -304,6 +306,23 @@ export function App({ store: givenStore }: AppProps) {
     if (grid !== null && event.target instanceof Node && !grid.contains(event.target)) event.preventDefault();
   }
 
+  function confirmImport() {
+    if (pendingImport === null) return;
+    setGame({ puzzle: pendingImport, history: emptyHistory });
+    setSelected({ row: 0, column: 0 });
+    setEntryMode(INITIAL_ENTRY_MODE);
+    setPendingImport(null);
+  }
+
+  function cancelImport() {
+    setPendingImport(null);
+  }
+
+  // Return focus to the grid when the confirmation dialog closes.
+  useEffect(() => {
+    if (pendingImport === null) gridRef.current?.focus();
+  }, [pendingImport]);
+
   // Clicking a cell selects it and keeps keyboard focus on the grid (keymap.md §1).
   function selectCell(row: number, column: number) {
     setSelected({ row, column });
@@ -362,6 +381,38 @@ export function App({ store: givenStore }: AppProps) {
         </p>
       )}
       <Toasts toasts={toasts} placement={toastPlacement} onDismiss={dismissToast} />
+      {pendingImport !== null && (
+        <form
+          className="import-confirmation"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="import-confirmation-title"
+          onSubmit={(event) => {
+            event.preventDefault();
+            confirmImport();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              confirmImport();
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              cancelImport();
+            }
+          }}
+        >
+          <div className="import-confirmation-content">
+            <h2 id="import-confirmation-title">Replace the current puzzle?</h2>
+            <p>Importing will replace the puzzle you are working on.</p>
+            <div className="import-confirmation-actions">
+              <button type="button" autoFocus onClick={cancelImport}>
+                Cancel
+              </button>
+              <button type="submit">Import</button>
+            </div>
+          </div>
+        </form>
+      )}
       {/*
        * Mouse-only: out of the Tab order, and the mousedown handler above
        * keeps focus on the grid when it is clicked (display.md §2).

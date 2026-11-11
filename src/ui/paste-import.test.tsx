@@ -21,9 +21,6 @@ const SAMPLE_A_ZEROS = '02006008070000100900080900007200060010000000700500093000
 /** import.md §6 Sample A in the site's permalink notation, `-` for empty. */
 const SAMPLE_A_DASHES = '-2--6--8-7----1--9---8-9----72---6--1-------7--5---93----3-7---3--5----4-1--2--6-';
 
-/** The refusal shown when a Puzzle is already loaded (Alix, TASK-4 step 2). */
-const REFUSAL = 'A puzzle is already loaded — reload the page to start a new one.';
-
 /** How long a toast stays before dismissing itself (Alix, TASK-4 step 2). */
 const TOAST_MS = 10_000;
 
@@ -238,44 +235,6 @@ describe('Paste import: a rejected paste shows a parse error and leaves the grid
   });
 });
 
-describe('Paste import: pasting while a Puzzle is already loaded is refused', () => {
-  it('pasting a second Puzzle leaves the loaded Puzzle exactly as it was', () => {
-    const grid = renderAndPaste(puzzle1);
-    const before = grid.innerHTML;
-    focusGrid(grid);
-    paste(puzzle2);
-    expect(grid.innerHTML).toBe(before);
-    expect(gridText(grid)).toBe(normalized(puzzle1));
-  });
-
-  it('pasting the same Puzzle again leaves it exactly as it was', () => {
-    const grid = renderAndPaste(puzzle1);
-    const before = grid.innerHTML;
-    focusGrid(grid);
-    paste(puzzle1);
-    expect(grid.innerHTML).toBe(before);
-  });
-
-  it('the refusal appears as a toast: "A puzzle is already loaded — reload the page to start a new one."', () => {
-    const grid = renderAndPaste(puzzle1);
-    expect(toastsOnScreen()).toHaveLength(0);
-    focusGrid(grid);
-    paste(puzzle2);
-    expect(toastTexts()).toEqual([REFUSAL]);
-    expect(grid.contains(onlyToast())).toBe(false);
-  });
-
-  it('pasting unparseable text shows only the refusal, not a parse error, and leaves the Puzzle as it was', () => {
-    const grid = renderAndPaste(puzzle1);
-    const before = grid.innerHTML;
-    focusGrid(grid);
-    // Wrong count and a bad character: would be two parse errors on an empty grid.
-    paste('Z' + SAMPLE_A_ZEROS.slice(1, 79));
-    expect(toastTexts()).toEqual([REFUSAL]);
-    expect(grid.innerHTML).toBe(before);
-  });
-});
-
 describe('Paste import: toasts dismiss themselves after 10 seconds or when clicked', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -300,14 +259,20 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
     expect(toastsOnScreen()).toHaveLength(0);
   });
 
-  it('the refusal toast is still shown just before 10 seconds and gone at 10 seconds', () => {
-    const grid = renderAndPaste(puzzle1);
+  it('a toast added later outlives the one that was already showing', () => {
+    const grid = renderApp();
     focusGrid(grid);
-    paste(puzzle2);
-    wait(TOAST_MS - 1);
-    expect(toastTexts()).toEqual([REFUSAL]);
-    wait(1);
-    expect(toastsOnScreen()).toHaveLength(0);
+    paste(SAMPLE_A_ZEROS.slice(0, 79)); // first parse error, at 0 s
+    wait(5_000);
+    focusGrid(grid);
+    paste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79)); // second parse error, at 5 s
+    const [first] = toastsOnScreen();
+    wait(TOAST_MS - 5_000 - 1); // just before 10 s
+    expect(first).toBeInTheDocument();
+    expect(toastsOnScreen()).toHaveLength(3);
+    wait(1); // 10 s: the first expires, the later ones remain
+    expect(first).not.toBeInTheDocument();
+    expect(toastsOnScreen()).toHaveLength(2);
   });
 
   it('clicking a toast dismisses it before 10 seconds', () => {
@@ -330,27 +295,33 @@ describe('Paste import: toasts dismiss themselves after 10 seconds or when click
   });
 
   it('a toast shown while another is showing stacks with it, and each keeps its own 10-second timer', () => {
-    const grid = renderAndPaste(puzzle1);
+    const grid = renderApp();
     focusGrid(grid);
-    paste(puzzle2); // first refusal, at 0 s
+    paste(SAMPLE_A_ZEROS.slice(0, 79)); // first parse error, at 0 s
     wait(5_000);
     focusGrid(grid);
-    paste(puzzle2); // second refusal, at 5 s
-    expect(toastTexts()).toEqual([REFUSAL, REFUSAL]);
-    const [first, second] = toastsOnScreen();
+    paste(SAMPLE_A_ZEROS.slice(0, 40) + 'x' + SAMPLE_A_ZEROS.slice(41, 79)); // second parse error, at 5 s
+    expect(toastTexts()).toEqual([
+      'found 79 cells, expected 81',
+      'found 79 cells, expected 81',
+      "unexpected 'x' at row 5, column 5",
+    ]);
+    const [firstWrong, secondWrong, badChar] = toastsOnScreen();
 
     wait(TOAST_MS - 5_000 - 1); // just before 10 s
-    expect(toastsOnScreen()).toHaveLength(2);
+    expect(toastsOnScreen()).toHaveLength(3);
 
-    wait(1); // 10 s: the first is gone, the second remains
-    expect(first).not.toBeInTheDocument();
-    expect(second).toBeInTheDocument();
-    expect(toastTexts()).toEqual([REFUSAL]);
+    wait(1); // 10 s: the first toast is gone, the later ones remain
+    expect(firstWrong).not.toBeInTheDocument();
+    expect(secondWrong).toBeInTheDocument();
+    expect(badChar).toBeInTheDocument();
+    expect(toastTexts()).toEqual(['found 79 cells, expected 81', "unexpected 'x' at row 5, column 5"]);
 
     wait(5_000 - 1); // just before 15 s
-    expect(second).toBeInTheDocument();
+    expect(secondWrong).toBeInTheDocument();
+    expect(badChar).toBeInTheDocument();
 
-    wait(1); // 15 s: 10 s after the second appeared
+    wait(1); // 15 s: 10 s after the second paste appeared
     expect(toastsOnScreen()).toHaveLength(0);
   });
 
@@ -450,9 +421,10 @@ describe('Paste import: Escape dismisses every toast', () => {
   });
 
   it('pressing Escape leaves the grid as it was', () => {
-    const grid = renderAndPaste(puzzle1);
-    paste(puzzle2);
+    const grid = renderApp();
+    focusGrid(grid);
     const before = grid.innerHTML;
+    paste(SAMPLE_A_ZEROS.slice(0, 79));
     fireEvent.keyDown(grid, { key: 'Escape' });
     expect(grid.innerHTML).toBe(before);
     expect(toastsOnScreen()).toHaveLength(0);
@@ -489,30 +461,6 @@ describe('Paste import: Givens are marked for styling and for screen readers', (
   it('once a Puzzle is loaded, the grid no longer asks for a paste', () => {
     expect(renderAndPaste(puzzle1)).toHaveAccessibleDescription('');
     expect(screen.queryByText('Paste a puzzle to start')).not.toBeInTheDocument();
-  });
-});
-
-describe('Paste import: refusals and parse errors look different', () => {
-  it('a parse error toast is of kind parse-error', () => {
-    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
-    expect(onlyToast()).toHaveAttribute('data-kind', 'parse-error');
-  });
-
-  it('the refusal toast is of kind refusal, unlike a parse error', () => {
-    renderAndPaste(SAMPLE_A_ZEROS.slice(0, 79));
-    const parseErrorKind = onlyToast().getAttribute('data-kind');
-    cleanup();
-    const grid = renderAndPaste(puzzle1);
-    focusGrid(grid);
-    paste(puzzle2);
-    const refusalKind = onlyToast().getAttribute('data-kind');
-    expect(refusalKind).toBe('refusal');
-    expect(refusalKind).not.toBe(parseErrorKind);
-  });
-
-  it('the refusal toast takes its background from its own token', () => {
-    expect(appCss).toMatch(/\.toast\[data-kind='refusal'\]\s*\{[^}]*background:\s*var\(--toast-refusal-background\)/);
-    expect(appCss).toMatch(/--toast-refusal-background:/);
   });
 });
 

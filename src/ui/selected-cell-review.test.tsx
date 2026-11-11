@@ -46,13 +46,13 @@ describe('Selected cell: importing a Puzzle', () => {
     expect(selectedCell(grid)).toBe(cellAt(grid, 0, 0));
   });
 
-  it('a refused paste leaves the selection where it was', () => {
+  it('pasting the same Puzzle again replaces it and selects row 1, column 1', () => {
     render(<App />);
     const grid = screen.getByRole('grid');
     paste(puzzle1);
     click(cellAt(grid, 4, 4));
     paste(puzzle1);
-    expect(selectedCell(grid)).toBe(cellAt(grid, 4, 4));
+    expect(selectedCell(grid)).toBe(cellAt(grid, 0, 0));
   });
 
   it('a paste that fails to parse leaves the selection where it was', () => {

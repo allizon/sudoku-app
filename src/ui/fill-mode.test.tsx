@@ -53,8 +53,6 @@ function paste(text: string) {
   });
 }
 
-const REFUSAL = 'A puzzle is already loaded — reload the page to start a new one.';
-
 afterEach(cleanup);
 
 describe('Fill mode: a digit key on an empty Selected cell places that digit', () => {
@@ -408,8 +406,8 @@ describe('Fill mode: key auto-repeat is ignored', () => {
   });
 });
 
-describe('Fill mode: a grid holding only a Placed digit counts as loaded, so a paste is refused', () => {
-  it('pasting leaves the grid exactly as it was', () => {
+describe('Fill mode: a grid holding only a Placed digit counts as loaded, so a paste asks before replacing', () => {
+  it('pasting leaves the grid exactly as it was until the player confirms', () => {
     const grid = renderApp();
     pressDigit(5);
     const before = grid.innerHTML;
@@ -417,11 +415,11 @@ describe('Fill mode: a grid holding only a Placed digit counts as loaded, so a p
     expect(grid.innerHTML).toBe(before);
   });
 
-  it('pasting shows the refusal toast', () => {
+  it('pasting shows the replace-puzzle confirmation', () => {
     renderApp();
     pressDigit(5);
     paste(puzzle1);
-    expect(screen.getByRole('alert')).toHaveTextContent(REFUSAL);
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(/replace/i);
   });
 
   it('the paste hint is gone once a digit is placed', () => {

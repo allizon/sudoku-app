@@ -5,7 +5,7 @@ import type { ToastPlacement } from './toast-placement';
 const TOAST_MS = 10_000;
 
 /** What a toast reports, which sets how it looks. */
-export type ToastKind = 'parse-error' | 'refusal';
+export type ToastKind = 'parse-error';
 
 type Toast = { readonly id: number; readonly kind: ToastKind; readonly message: string };
 

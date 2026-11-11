@@ -134,11 +134,6 @@ describe('Color scheme: text meets at least 4.5:1 contrast in both schemes', () 
     expect(contrastRatio(colorOf('.toast', 'color', scheme), toastBackground('.toast', scheme))).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(SCHEMES)('in the %s color scheme, refusal toast text meets 4.5:1 against its background', (scheme) => {
-    expect(
-      contrastRatio(colorOf('.toast', 'color', scheme), toastBackground(".toast[data-kind='refusal']", scheme)),
-    ).toBeGreaterThanOrEqual(4.5);
-  });
 });
 
 describe('Color tokens: every color the app draws comes from a CSS token (AC #7)', () => {
