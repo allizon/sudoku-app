@@ -462,3 +462,25 @@ _The entries from here to "2026-10-25 — Moving to Claude Code" were written af
 - Tidy: main hadn't moved. Autosquash rebase, 6 commits, 1117 green. Handing off.
 - Alix approved the merge ("approved, commit and push everything"). Fast-forwarded main to `b6c71a0`, re-ran the suite on main (1117 green), marked task-8 Done with all 8 criteria checked (`2368e3c`, which also carries the TASK-12 note), committed this log, pushed (deploys), and deleted the branch. That's the last keymap task for M0.
 - Still open for Alix: a real-browser check of delete, fn+delete and X on a Mac, on a cell with Candidates hidden under a Placed digit.
+
+## 2026-11-01 — planning milestone 1 tickets
+
+- Planned the M1 tickets from milestones.md with Alix. Four already existed (TASK-12, 13, 14, 15); TASK-14 turned out Done meanwhile. Created nine new ones: TASK-16 undo/redo, TASK-17 solver, TASK-18 import validation, TASK-19 import field, TASK-20 conflicts, TASK-21 elimination, TASK-22 mistakes, TASK-23 solved, TASK-24 autosave.
+- Alix approves big-ticket decisions in one word, then moves on: on ordering, autosave staging, and the interim-toast transition the answers were "order is fine", "leave it", "i think this is ok". Writing each Open question with a clear default keeps bare approvals unambiguous (task-7/task-8 lesson held).
+- Claude's own call, flagged for review: TASK-16's "history survives a refresh" criterion from keymap §6 can't be met before the storage interface exists, so refresh survival is deferred to TASK-24 with this stated in both tickets. The AC list still says what keymap §6 requires; TASK-24 makes it true.
+- Please read me: Red flag to self — I nearly wrote "the import waits for the solve" as a UI test, before noticing a synchronous core solve needs no waiting at all. Ordering spec rules by who produces them (core vs UI) keeps tests honest.
+- Claude's own call, flagged for review: elimination (TASK-21) depends on undo (TASK-16) because bundling placement+elimination into one step changes what TASK-16's engine counts as a step. Revisiting a shipped rule is how a dependency likes to look; it's cheaper than designing undo around a future rule.
+- **Lesson:** when a spec criterion belongs to two tickets (undo history surviving a refresh is §6's business but Store's delivery), point both tickets at it rather than splitting the wording. The ticket that makes it true should own the criterion.
+
+## 2026-11-01 — task-16: undo and redo
+
+- Branched `task-16/undo-redo`; marked TASK-16 In Progress with the engine plan on the ticket.
+- test-writer: 69 new tests (34 core in `undo.test.ts`, 35 UI in `undo.test.tsx`), all red on first run; 1108 existing green.
+- Alix answered three questions and then "do whatever would be commonly expected" on the last two: a no-op keypress does not discard redo history; undo never moves the selection or Sticky mode; the undo/redo keys call preventDefault (an unsolicited edit to §6, like §5's rule); and after place A → undo → place B, redo dies but a further undo restores A — text-editor behavior. Alix's one-word style carried; each question had a default.
+- The revised tests found a genuine slip in the approved tests themselves: the "nothing to redo" priming pressed Cmd+Z where its own comment said "brings the placement back" (a redo). Fixed and re-settled with Alix rather than silently edited.
+- Review round 1, both reviewers in parallel: no majors. Six minors, three fixed (a wrong invariant comment; a Cmd+Ctrl+Z guard/comment mismatch, with a new test; a missing length-2 discard test that caught a real order bug — laid-back steps must be reversed). Declined/settled in session: commit scope `(undo)` reworded to `(keymap)` during tidy; auto-repeat (holding Cmd+Z keeps undoing), undo while a chord is held, and Ctrl+Y on all platforms go to the handoff as spec gaps.
+- test-revision and tidy kept a truthful red→green sequence by rebasing the revised tests before the semantic fix, and rewording commit scopes to the spec area.
+- **Mistake (Claude, repaired):** while committing the docs rule I ran `git checkout LEARNING-LOG.md`, briefly discarding Alix's uncommitted log entries and the TASK-12 note. Recovered verbatim from a dangling autostash commit found by `git fsck`. **Lesson:** don't resolve "dirt" with a checkout; the log's uncommitted state is load-bearing, and stash recovery worked only because the stash commits were still dangling. Never run destructive git against the log before checking `git status` output carefully.
+- **Lesson (test-writer convention working as designed):** every "does nothing" test primed with a live undo/redo is what turned a tiny helper slip into a caught contradiction the same day, instead of a wrong spec heading to production. The engine's first take had to be rewritten once for trail semantics and once for multi-step discard order; the tests caught both.
+- Merged and pushed (deploys), branch deleted. Marked TASK-16 Done with all 7 criteria checked and the final summary on the ticket. Today's log entries left uncommitted for the once-a-day commit.
+
