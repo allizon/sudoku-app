@@ -85,6 +85,16 @@ export function isEmptyPuzzle(puzzle: Puzzle): boolean {
 }
 
 /**
+ * Whether the player has entered anything into the Puzzle beyond its Givens:
+ * at least one Placed digit, Center mark, or Corner mark.
+ * A Puzzle with only Givens (or an empty Puzzle) has no player input.
+ * import.md §5; TASK-12 AC #1, #5.
+ */
+export function hasPlayerInput(_puzzle: Puzzle): boolean {
+  throw new Error('hasPlayerInput: not implemented');
+}
+
+/**
  * The box (0–8) holding the cell at a 0-based row and column. Boxes are
  * numbered left to right, top to bottom.
  */
