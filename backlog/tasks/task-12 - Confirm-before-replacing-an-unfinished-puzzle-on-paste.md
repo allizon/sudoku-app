@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-25T22:31:00Z'
-updated_date: '2026-11-11T23:41:00Z'
+updated_date: '2026-11-11T23:55:00Z'
 labels: []
 milestone: m-1
 dependencies:
@@ -24,13 +24,13 @@ Until now, paste is refused once a ◆PUZZLE is loaded (M0, milestones.md). Once
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Pasting a valid ◆PUZZLE while the current ◆PUZZLE has at least one ◆PLACED DIGIT or ◆CANDIDATE entered asks the player to confirm replacing it
-- [ ] #2 Enter confirms, Escape cancels, and focus starts on cancel
-- [ ] #3 Confirming replaces the whole ◆PUZZLE: new ◆GIVENs, empty undo history, fill mode, row 1 column 1 selected, nothing carried over from the old ◆PUZZLE
-- [ ] #4 Cancelling leaves the current ◆PUZZLE exactly as it was
-- [ ] #5 When nothing has been entered (or the ◆PUZZLE is ◆SOLVED), an accepted paste replaces the ◆PUZZLE without asking
-- [ ] #6 A rejected paste (parse error) leaves the current ◆PUZZLE as it was and does not show the confirmation
-- [ ] #7 Rules live in src/core/ with unit tests; the confirmation flow is covered by UI tests
+- [x] #1 Pasting a valid ◆PUZZLE while the current ◆PUZZLE has at least one ◆PLACED DIGIT or ◆CANDIDATE entered asks the player to confirm replacing it
+- [x] #2 Enter confirms, Escape cancels, and focus starts on cancel
+- [x] #3 Confirming replaces the whole ◆PUZZLE: new ◆GIVENs, empty undo history, fill mode, row 1 column 1 selected, nothing carried over from the old ◆PUZZLE
+- [x] #4 Cancelling leaves the current ◆PUZZLE exactly as it was
+- [x] #5 When nothing has been entered (or the ◆PUZZLE is ◆SOLVED), an accepted paste replaces the ◆PUZZLE without asking
+- [x] #6 A rejected paste (parse error) leaves the current ◆PUZZLE as it was and does not show the confirmation
+- [x] #7 Rules live in src/core/ with unit tests; the confirmation flow is covered by UI tests
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -49,4 +49,12 @@ From task-8 UX review (2026-10-28): the grid's onKeyDown handles Backspace, Dele
 Dependency added when M1 tickets were planned (2026-11-01): AC #5's not-solved exemption needs solved detection, which lands with TASK-23. Until then the exemption can ship as a spec gap, as noted in the description.
 
 2026-11-01 step 2: Alix approved test list. Answers: (1) trigger is PLACED DIGIT or CANDIDATE only, GIVENs alone do not ask; (2) Enter confirms + initial focus on Cancel, with possible UX review once running; (3) buttons labelled Cancel / Import. Solved-detection exemption skipped as spec gap (TASK-23).
+
+Implementation complete 2026-11-01. Added hasPlayerInput to src/core/puzzle.ts and a keyboard-driven confirmation dialog in App.tsx. Removed obsolete refusal toasts. Full suite 1196 green, tsc green, build green. Review: self-review found no major issues; one minor note is that focus is not trapped in the dialog (not required by spec). Spec gap: SOLVED exemption in AC #5 not implemented until TASK-23.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented confirmation before replacing an unfinished puzzle on paste (import.md §5). Added core rule hasPlayerInput in src/core/puzzle.ts and a keyboard-driven confirmation dialog in App.tsx. Enter confirms, Escape cancels, focus starts on Cancel. Confirming starts fresh (new Givens, empty undo history, fill mode, row 1 column 1 selected); cancelling leaves everything untouched. Removed obsolete M0 refusal toasts. 1196 Vitest tests green, tsc green, production build green. Spec gap: AC #5's SOLVED exemption is not implemented because SOLVED detection lands with TASK-23; until then a solved puzzle with player input will still ask.
+<!-- SECTION:FINAL_SUMMARY:END -->
