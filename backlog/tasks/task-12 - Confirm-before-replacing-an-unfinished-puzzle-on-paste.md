@@ -1,11 +1,11 @@
 ---
 id: TASK-12
 title: Confirm before replacing an unfinished puzzle on paste
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25T22:31:00Z'
-updated_date: '2026-11-11T23:55:00Z'
+updated_date: '2026-11-12T00:42:00Z'
 labels: []
 milestone: m-1
 dependencies:
