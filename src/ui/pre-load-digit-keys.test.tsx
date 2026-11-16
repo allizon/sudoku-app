@@ -116,7 +116,7 @@ describe('Digit keys work as before after an accepted paste (AC #2)', () => {
     paste(puzzle1);
     pressN(); // fill → center
     pressDigit(5);
-    expect(cellAt(grid, 0, 0)).toHaveAccessibleName(/, center 5$/);
+    expect(cellAt(grid, 0, 0)).toHaveAccessibleName(/, center marks 5$/);
   });
 
   it('a digit places a Candidate in corner mode after the paste', () => {
@@ -125,7 +125,7 @@ describe('Digit keys work as before after an accepted paste (AC #2)', () => {
     pressN(); // fill → center
     pressN(); // center → corner
     pressDigit(5);
-    expect(cellAt(grid, 0, 0)).toHaveAccessibleName(/, corner 5$/);
+    expect(cellAt(grid, 0, 0)).toHaveAccessibleName(/, corner marks 5$/);
   });
 });
 

@@ -13,6 +13,7 @@
 // Keys are fired as keydown events with both `key` (the character produced) and `code` (the physical key).
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import puzzle1 from '../../fixtures/puzzles/puzzle-1.txt?raw';
+import puzzleSeed from '../../fixtures/puzzles/puzzle-seed.txt?raw';
 import type { Store } from '../core/store';
 import { App } from './App';
 
@@ -25,7 +26,13 @@ function memoryStore(): Store {
 
 function renderApp(store: Store = memoryStore()) {
   render(<App store={store} />);
-  return screen.getByRole('grid');
+  // Digit keys do nothing until a Puzzle is loaded (keymap.md §2), so renderApp
+  // loads the seed Puzzle: puzzle-1 with the Givens blanked out at every cell
+  // these tests touch, so it is still a valid, uniquely solvable Puzzle
+  // (import.md §4) and no test cell holds a Given.
+  const grid = screen.getByRole('grid');
+  paste(puzzleSeed);
+  return grid;
 }
 
 function cellsByRow(grid: HTMLElement): HTMLElement[][] {
@@ -122,7 +129,7 @@ describe('Entry mode: the app starts in fill mode (AC #1)', () => {
     expectEntryMode('fill');
   });
 
-  it('on opening, a digit key places a Placed digit', () => {
+  it('once a Puzzle is loaded, a digit key places a Placed digit', () => {
     const grid = renderApp();
     expectEntryMode('fill');
     pressDigit(5);
@@ -346,11 +353,13 @@ describe('Center mode: a digit key toggles that digit as a Center mark in the Se
   it('no other cell changes', () => {
     const grid = renderApp();
     toCenter();
+    const before = cellsByRow(grid).flat().map((cell) => cell.textContent);
     pressDigit(5);
     const changed = cellsByRow(grid)
       .flat()
-      .filter((cell) => cell.textContent !== '');
-    expect(changed).toEqual([cellAt(grid, 0, 0)]);
+      .map((cell) => cell.textContent)
+      .filter((text, i) => text !== before[i]);
+    expect(changed).toEqual(['5']);
     expect(centerMarksText(cellAt(grid, 0, 0))).toBe('5');
   });
 

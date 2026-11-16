@@ -7,14 +7,22 @@
 import { readFileSync } from 'node:fs';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import puzzle1 from '../../fixtures/puzzles/puzzle-1.txt?raw';
+import puzzleSeed from '../../fixtures/puzzles/puzzle-seed.txt?raw';
 import { App } from './App';
 
 /** App.css as written (see paste-import.test.tsx for why it is read from disk). */
 const appCss = readFileSync(`${import.meta.dirname}/App.css`, 'utf8');
 
+// Digit keys do nothing until a Puzzle is loaded (keymap.md §2), so renderApp
+// loads the seed Puzzle: puzzle-1 with the Givens blanked out at every cell
+// these tests touch, so it is still a valid, uniquely solvable Puzzle
+// (import.md §4) and no test cell holds a Given. Tests of the virgin empty
+// grid live in paste-import.test.tsx and pre-load-digit-keys.test.tsx.
 function renderApp() {
   render(<App />);
-  return screen.getByRole('grid');
+  const grid = screen.getByRole('grid');
+  paste(puzzleSeed);
+  return grid;
 }
 
 function cellsByRow(grid: HTMLElement): HTMLElement[][] {
@@ -78,11 +86,13 @@ describe('Fill mode: a digit key on an empty Selected cell places that digit', (
 
   it('no other cell changes', () => {
     const grid = renderApp();
+    const before = cellsByRow(grid).flat().map((cell) => cell.textContent);
     pressDigit(5);
-    const filled = cellsByRow(grid)
+    const changed = cellsByRow(grid)
       .flat()
-      .filter((cell) => cell.textContent !== '');
-    expect(filled).toHaveLength(1);
+      .map((cell) => cell.textContent)
+      .filter((text, i) => text !== before[i]);
+    expect(changed).toEqual(['5']);
   });
 
   it('the Selected cell stays where it was', () => {
@@ -422,10 +432,8 @@ describe('Fill mode: a grid holding only a Placed digit counts as loaded, so a p
     expect(screen.getByRole('alertdialog')).toHaveTextContent(/replace/i);
   });
 
-  it('the paste hint is gone once a digit is placed', () => {
+  it('the paste hint is gone once a Puzzle is loaded', () => {
     renderApp();
-    expect(screen.queryByText('Paste a puzzle to start')).toBeInTheDocument();
-    pressDigit(5);
     expect(screen.queryByText('Paste a puzzle to start')).not.toBeInTheDocument();
   });
 

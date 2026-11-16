@@ -238,6 +238,10 @@ export function App({ store: givenStore }: AppProps) {
     if (digit !== undefined) {
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
+      // Until a Puzzle is loaded, digit keys do nothing in every mode (keymap.md
+      // §2): a mark on the empty grid would make the next paste ask to replace a
+      // puzzle the player never started.
+      if (empty) return;
       if (activeMode !== undefined) changePuzzle((current) => enterDigit(current, selected, activeMode, digit));
       return;
     }

@@ -10,6 +10,7 @@
 // physical key).
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import puzzle1 from '../../fixtures/puzzles/puzzle-1.txt?raw';
+import puzzleSeed from '../../fixtures/puzzles/puzzle-seed.txt?raw';
 import type { Store } from '../core/store';
 import { App } from './App';
 
@@ -22,7 +23,13 @@ function memoryStore(): Store {
 
 function renderApp(store: Store = memoryStore()) {
   render(<App store={store} />);
-  return screen.getByRole('grid');
+  // Digit keys do nothing until a Puzzle is loaded (keymap.md §2), so renderApp
+  // loads the seed Puzzle: puzzle-1 with the Givens blanked out at every cell
+  // these tests touch, so it is still a valid, uniquely solvable Puzzle
+  // (import.md §4) and no test cell holds a Given.
+  const grid = screen.getByRole('grid');
+  paste(puzzleSeed);
+  return grid;
 }
 
 function cellsByRow(grid: HTMLElement): HTMLElement[][] {
@@ -173,14 +180,17 @@ describe('Letter chords: while C is held, each digit press toggles that digit as
 
   it('no other cell changes', () => {
     const grid = renderApp();
+    const before = cellsByRow(grid).flat().map((cell) => cell.textContent);
     holdC();
     pressDigit(5);
     releaseC();
     expect(centerMarksText(cellAt(grid, 0, 0))).toBe('5');
+    // Exactly the Selected cell differs from before the chord.
     const changed = cellsByRow(grid)
       .flat()
-      .filter((cell) => cell.textContent !== '');
-    expect(changed).toEqual([cellAt(grid, 0, 0)]);
+      .map((cell) => cell.textContent)
+      .filter((text, i) => text !== before[i]);
+    expect(changed).toEqual(['5']);
   });
 
   it('numpad digits toggle Center marks during a C chord too', () => {

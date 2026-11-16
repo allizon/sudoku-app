@@ -5,6 +5,7 @@
 // Same page assumptions as letter-chords.test.tsx: the Entry mode line is the element with class
 // "entry-mode-line" carrying data-entry-mode, and a cell's accessible name lists what it holds.
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import puzzleSeed from '../../fixtures/puzzles/puzzle-seed.txt?raw';
 import type { Store } from '../core/store';
 import { App } from './App';
 
@@ -17,7 +18,22 @@ function memoryStore(): Store {
 
 function renderApp() {
   const rendered = render(<App store={memoryStore()} />);
-  return { grid: screen.getByRole('grid'), unmount: rendered.unmount };
+  // Digit keys do nothing until a Puzzle is loaded (keymap.md §2), so renderApp
+  // loads the seed Puzzle: puzzle-1 with the Givens blanked out at every cell
+  // these tests touch, so it is still a valid, uniquely solvable Puzzle
+  // (import.md §4) and no test cell holds a Given.
+  const grid = screen.getByRole('grid');
+  paste(puzzleSeed);
+  return { grid, unmount: rendered.unmount };
+}
+
+function paste(text: string) {
+  fireEvent.paste(document.activeElement ?? document.body, {
+    clipboardData: {
+      types: ['text/plain'],
+      getData: (format: string) => (format === 'text/plain' || format === 'text' ? text : ''),
+    },
+  });
 }
 
 /** The cell at a 0-based row and column. */

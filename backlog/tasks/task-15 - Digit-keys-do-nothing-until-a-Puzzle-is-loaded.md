@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-28T02:08:00Z'
-updated_date: '2026-11-16T03:36:00Z'
+updated_date: '2026-11-16T03:42:00Z'
 labels:
   - keymap
 milestone: m-0
@@ -34,3 +34,14 @@ Alix (2026-10-27): "ignore any marks before the puzzle loads", then chose: until
 - [ ] #4 A paste onto the never-loaded grid is accepted even after digit keys were pressed
 - [ ] #5 The rule is recorded in docs/spec/keymap.md
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review round 1 (in-session, code-reviewer + ux-reviewer passes; this harness has no subagent dispatch):
+- [major, Fixed] The first seed fixture (one Given at row 3, column 6) would be rejected by TASK-18's import validation (a puzzle with no solution), re-breaking the ~140 tests that load it. Replaced with a valid, uniquely solvable seed: puzzle-1 with the Givens blanked at the 8 cells these tests touch (verified: 33 Givens, exactly 1 solution).
+- [minor, Fixed] The three 'no other cell changes' scans counted non-empty cells, which breaks once the loaded Puzzle has Givens; rewritten as before/after diffs of the whole grid.
+- [minor, Declined] pre-load-digit-keys.test.tsx inlines the mouse-click sequence instead of a shared click() helper. Declined: each test file in this suite keeps its own helpers by convention.
+- [ux, no findings] Player-facing behavior is exactly the ticket's decision: digit keys are silent no-ops before a Puzzle loads, the hint and mode line behave as before, paste still works.
+Note: reviews were performed in-session rather than by dispatched subagents (this harness has no subagent mechanism).
+<!-- SECTION:NOTES:END -->
