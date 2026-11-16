@@ -26,6 +26,7 @@ There are three **◆ENTRY MODEs**: _fill_, _center_, and _corner_.
 - The current mode is always visible on screen, as a small line of text under the grid naming the mode. Its color depends on the mode: gray for fill, blue for center, green for corner, with shades suited to each color scheme ([`display.md`](./display.md) §2).
 - This line updates instantly whenever the mode changes. While a chord's letter is held ([§3](#3-letter-chords)), it shows the chord's mode; when the letter is released, it reverts to the ◆STICKY MODE.
 - The ◆ENTRY MODE LINE reads "Fill mode", "Center mode", or "Corner mode". Screen readers announce it politely when the mode changes.
+- Until a ◆PUZZLE is loaded, a digit key does nothing in every mode: no ◆PLACED DIGIT or ◆CANDIDATE appears ([`import.md`](./import.md) §2). The grid stays empty, so the next paste is accepted and the "Paste a puzzle to start" hint stays. `N`, the arrow keys, and clicking a cell work as always; after an accepted paste, digit keys work as described above.
 
 ## 3. Letter chords
 
