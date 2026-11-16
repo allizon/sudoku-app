@@ -1,9 +1,11 @@
 ---
 id: TASK-15
 title: Digit keys do nothing until a Puzzle is loaded
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-28T02:08:00Z'
+updated_date: '2026-11-16T03:36:00Z'
 labels:
   - keymap
 milestone: m-0
